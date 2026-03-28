@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Availability | HOJ Hostel",
   description: "Check current availability of bed spaces and rooms at House of Jesse Hostel, Ajah Lagos.",

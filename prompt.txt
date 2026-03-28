@@ -1,0 +1,502 @@
+You are a senior full-stack engineer and product designer. Build a complete, production-ready hostel booking and management web app for a real client called **House of Jesse / HOJ Hostel**.
+
+IMPORTANT:
+- This is NOT just a concept or static landing page.
+- Build the **full project**: polished public website + customer accounts + booking flow + private admin dashboard + backend/API + database schema + image uploads + availability logic + email notifications + settings structure.
+- The frontend will be hosted on **Vercel**.
+- The app must be **fast, premium, responsive, and Webflow-like** in visual quality.
+- Use a clean, scalable codebase.
+- Do NOT hardcode any credentials, API keys, SMTP secrets, auth secrets, database URLs, storage keys, or private tokens anywhere in the code.
+- Put all secrets in `.env` and provide a `.env.example`.
+- Output the FULL project code and file structure, not just explanations.
+- If you need placeholders, clearly mark them.
+- No lorem ipsum.
+- No fake testimonials.
+- Use the real business information below as source of truth.
+
+## TECH STACK
+Use a stack that works well with Vercel and is production-ready:
+
+- **Next.js** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Framer Motion** or smooth JS animation for major motion
+- **lightweight jQuery micro-interactions/animations only where useful on the marketing/public pages**, but do not let jQuery hurt performance
+- **Prisma ORM**
+- **PostgreSQL** database
+- **NextAuth or custom JWT auth** for customer/admin authentication
+- **Zod** for validation
+- **React Hook Form** for forms
+- **Cloudinary or similar storage-ready pattern** for image uploads
+- **Email notification integration-ready setup** using env variables
+- Structure it cleanly for Vercel deployment
+
+If you prefer a slightly better tool than jQuery for some motion, keep the site fast and clean, but still include tasteful lightweight jQuery-based micro-interactions on the public site because the client requested that feel.
+
+## PRIMARY GOAL
+Create a complete system that allows:
+
+### Public-facing side
+- premium hostel website
+- bed space / room listing display
+- location selection
+- public availability display
+- booking/inquiry flow
+- WhatsApp CTA
+- testimonials/trust section
+- customer account registration/login
+- customers can submit bookings
+- customers can check booking status from their account
+- polished accommodation brand presentation
+
+### Private/admin side
+- admin login
+- dashboard overview
+- manage houses/locations
+- **post new apartment / house / bed space listings**
+- edit listings
+- upload images
+- mark listings as available / occupied / limited
+- manage bookings
+- manage residents
+- automatic due-date / renewal calculation
+- occupancy tracking
+- availability sync between website and dashboard
+- email notification triggers
+- content/settings management
+- testimonial management
+- contact/lead management
+
+## BUSINESS / BRAND DATA
+Use this real information:
+
+### Brand
+- Main brand: **House of Jesse**
+- Also use: **HOJ Hostel**
+- Theme: **orange + black**
+- Style: clean, appealing, premium, modern, trustworthy
+- Business type: **bed space hostel**
+
+### Core brand copy
+Use this and refine it into polished website copy:
+
+“House of Jesse Hostel isn’t just a place to sleep — it’s your comfortable, affordable, and conveniently located accommodation with flexible payment. Suitable for starters, NYSC members, students, young professionals, and travelers in need of a clean, safe space for a night, week or a month, we’ve got you covered.”
+
+### Audience
+- starters
+- NYSC members
+- students
+- young professionals
+- travelers
+
+### Locations / Houses
+- **HOJ 1:** Golden Rays Estate, Olokonla
+- **HOJ 2:** Greenland Estate, Olokonla Ajah
+
+### Contact
+- WhatsApp / phone: **+234 814 541 6775**
+- Use email placeholder for now: **houseofjessehostel@gmail.com**
+- Add support for business email in settings later
+
+### Stay durations
+- daily
+- weekly
+- monthly
+
+### Accommodation / pricing
+Present clearly:
+- 7 bed spaces — **₦30,000 / week**
+- 14 bed spaces — **₦40,000 / week**
+- Single room A — **₦40,000 / week**
+- Single room B — **₦70,000 / week**
+
+Do not invent extra prices.
+
+### Amenities / features
+- CCTV surveillance
+- steady electricity
+- backup generator
+- inverter / solar support
+- constant water supply
+- high-speed Wi-Fi
+- wardrobes & storage
+- cleaning services
+- kitchen
+- parking space
+
+### Booking requirements
+The booking form and customer flow should support:
+- name of resident
+- address of resident
+- mobile number of resident
+- emergency contact
+- relationship of emergency contact
+- email (optional)
+- preferred stay duration
+- preferred house/location
+- preferred accommodation type
+- preferred check-in date
+- additional message/notes
+
+Also include note:
+- house rules will be in the welcome message sent via email
+
+### Images / content notes
+- The client has current photos for House 1
+- House 2 is still in progress
+- Add House 2 in a clean elegant way with **“more pictures coming soon”** if needed
+- Make image upload support available in admin
+- Use uploaded logo if provided
+- If logo file is not clean enough, still create a polished branded header treatment inspired by it
+
+## PRODUCT REQUIREMENTS
+
+# 1. PUBLIC WEBSITE
+Build a premium single-page or multi-section marketing site for HOJ Hostel with these sections:
+
+### Header / sticky navigation
+- logo
+- Home
+- About
+- Locations
+- Availability
+- Pricing
+- Amenities
+- Gallery
+- Book Now
+- Contact
+- CTA: WhatsApp
+
+### Hero section
+- strong headline
+- subtitle focused on comfort, affordability, Ajah location, and flexible stay
+- CTA buttons:
+  - Check Availability
+  - Book via WhatsApp
+  - Create Account / Login
+- trust badges:
+  - CCTV
+  - Steady Electricity
+  - Wi-Fi
+  - Flexible Stay
+
+### About section
+- brand story / intro
+- explain bed space hostel model
+- explain who it is suitable for
+
+### Locations section
+- cards for HOJ 1 and HOJ 2
+- location selectors
+- map-ready layout
+- elegant presentation
+
+### Availability section
+- show current public availability status
+- each listing should show status like:
+  - Available
+  - Limited
+  - Occupied
+  - Check availability
+- this must be designed to sync with backend availability later
+- customers should be able to filter by house / stay type / accommodation type
+
+### Pricing / accommodation section
+- clean cards for each accommodation type
+- show weekly rate
+- show relevant house/location if useful
+- include CTA to book or inquire
+
+### Amenities section
+- premium icon cards
+- strong trust-building design
+
+### Gallery section
+- House 1 images
+- House 2 section with “more pictures coming soon” if incomplete
+- high-end layout
+- lightbox or polished gallery experience
+
+### Testimonials / trust section
+- If testimonials are not yet available, create a clean placeholder section:
+  - “Client testimonials will be added here”
+  - “More reviews coming soon”
+- Build it so admin can add/edit testimonials later
+
+### Booking / inquiry section
+- booking form
+- WhatsApp shortcut
+- clean customer path
+- note about welcome email and house rules
+
+### Contact / footer
+- WhatsApp number
+- email placeholder
+- locations
+- repeated CTA
+- premium footer
+
+# 2. CUSTOMER ACCOUNT SYSTEM
+Build customer authentication and account features:
+
+### Customer auth
+- sign up
+- login
+- forgot password / reset password
+- secure password hashing
+- protected customer dashboard
+
+### Customer dashboard
+- profile
+- saved booking details
+- submitted booking requests
+- booking status
+- current stay info if approved
+- due date visible if applicable
+- email preference / contact info
+- logout
+
+### Customer booking flow
+- a logged-in customer can submit booking requests
+- customer can select:
+  - location
+  - accommodation type
+  - duration
+  - check-in date
+- system should prevent obvious overbooking when capacity is exhausted
+- admin still has final approval control
+- availability shown publicly should reflect actual managed capacity
+
+# 3. ADMIN DASHBOARD
+This is very important.
+
+Build a private admin dashboard where HOJ management can:
+
+### Admin auth / role protection
+- admin login
+- protected admin routes
+- basic role setup for future expansion
+
+### Dashboard overview
+- total listings
+- total active bookings
+- available bed spaces
+- occupied bed spaces
+- pending booking requests
+- upcoming due dates / renewals
+- quick stats cards
+- charts if useful
+
+### Listing management
+The admin MUST be able to:
+- create new house/location
+- create new apartment / unit / bed space listing
+- edit listing
+- delete listing
+- upload multiple images
+- set price
+- set capacity
+- set category/type
+- set house/location
+- set available/occupied/limited status
+- write description
+- mark as featured
+- publish/unpublish
+
+This is critical because the client wants to be able to post new apartment/space later.
+
+### Booking management
+Admin can:
+- view booking requests
+- approve / reject / mark pending
+- assign customer to a bed space or listing
+- see customer data
+- update booking status
+- prevent clashes/overbooking
+- sync approved bookings into occupancy counts
+
+### Resident management
+Admin can:
+- create resident record
+- edit resident record
+- attach resident to a booking/listing
+- store:
+  - name
+  - address
+  - phone
+  - emergency contact
+  - relationship
+  - email
+  - check-in date
+  - duration
+  - due date
+  - status
+
+### Due-date / renewal automation
+Implement logic so:
+- due date auto-calculates from check-in date + stay duration
+- upcoming renewals appear on dashboard
+- overdue records are visible
+- admin can mark renewed / paid / moved out
+- occupancy updates accordingly
+
+### Availability sync
+This is critical:
+- public website availability should reflect actual admin-managed availability
+- bookings approved via website should affect available capacity
+- manual/offline/WhatsApp bookings added by admin should also affect availability
+- avoid overbooking/clashes
+
+### Testimonial management
+- add/edit/delete testimonials
+- show/hide on public site
+
+### Content/settings management
+Admin should be able to manage:
+- hostel intro text
+- contact info
+- WhatsApp number
+- email
+- logo
+- theme assets
+- footer text
+- house rules / welcome message content
+
+# 4. EMAIL / NOTIFICATION FLOW
+Build the structure for:
+- booking submission email
+- admin notification email
+- welcome email
+- house rules email
+- booking status update email
+- reminder-ready architecture
+
+Do not hardcode SMTP or API secrets. Use `.env`.
+Use a provider-ready pattern.
+
+# 5. SECURITY / PERFORMANCE / CODE QUALITY
+Must include:
+- no hardcoded secrets
+- `.env.example`
+- secure server-side validation
+- input sanitization
+- auth protection
+- proper database schema
+- scalable file structure
+- reusable components
+- clean TypeScript types
+- responsive UI
+- SEO-friendly public pages
+- fast load performance
+- optimized images
+- lazy loading where appropriate
+- accessible semantic HTML
+- polished empty states / loading states / error states
+
+# 6. UI / DESIGN QUALITY
+The design must feel:
+- premium
+- modern
+- Webflow-like
+- accommodation-focused
+- trustworthy
+- elegant
+- fast
+- polished
+- orange + black themed
+- mobile-first
+- smooth micro-interactions
+- soft shadows
+- rounded cards
+- glow accents
+- subtle scroll reveal
+- premium CTA styling
+
+Use tasteful animations.
+Use Framer Motion for major animated sections if needed.
+Use very light jQuery-based micro-interactions only where useful on the public page and only if performance remains strong.
+
+# 7. DATABASE MODELING
+Design a clean schema for at least:
+- User
+- CustomerProfile
+- AdminProfile or Role
+- House
+- Listing / BedSpace / Unit
+- Booking
+- Resident
+- Testimonial
+- GalleryImage
+- Setting / SiteConfig
+- Notification or EmailLog (optional but nice)
+
+Make relationships clean and practical.
+
+# 8. FILES TO OUTPUT
+Output the full project structure and all needed files, including at minimum:
+- app/ routes/pages
+- components
+- lib
+- prisma schema
+- API routes / server actions
+- Tailwind config
+- auth setup
+- env example
+- package.json
+- README with setup + migration + deploy steps
+- seed or starter data if useful
+- image upload handling pattern
+- contact/WhatsApp helpers
+
+# 9. SPECIFIC DELIVERY REQUIREMENTS
+I want the project delivered as a real build-ready codebase, not just snippets.
+Do not output vague explanations only.
+Produce actual code.
+
+Include:
+- premium public homepage
+- customer registration/login pages
+- customer dashboard
+- admin dashboard
+- listing creation/edit pages
+- booking management pages
+- resident management pages
+- settings page
+- testimonial management page
+- API/database logic for availability and due-date automation
+
+# 10. ENV RULES
+Absolutely no hardcoded credentials.
+Use env variables for:
+- DATABASE_URL
+- NEXTAUTH_SECRET or JWT secret
+- auth provider settings if any
+- email provider secrets
+- storage/cloudinary credentials
+- app URL
+- any admin seed secrets if needed
+
+Provide `.env.example` with placeholder names only.
+
+# 11. FINAL INSTRUCTION
+Generate the complete project so that:
+- the frontend can be deployed on Vercel
+- the backend logic is fully included
+- new apartment / house / bed space listings can be posted from admin
+- customer accounts are supported
+- availability sync works
+- due-date automation works
+- email-ready structure exists
+- the site looks premium and client-ready
+- no credentials are hardcoded
+- everything is clean, fast, and professionally structured
+
+
+CRITICAL:
+You are not allowed to install anything, execute anything, or simulate terminal operations.
+Do NOT run npm install, pnpm install, yarn, bun, prisma commands, build commands, or deployment commands.
+Do NOT behave like a live terminal.
+Only generate the complete project files and source code so I can deploy it myself later on Vercel.
+Include package.json and .env.example, but do not install or execute anything.
+
+Start now and output the full codebase.

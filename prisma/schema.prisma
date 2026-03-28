@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  role          Role      @default(CUSTOMER)
+
+  customerProfile CustomerProfile?
+  adminProfile    AdminProfile?
+  bookings        Booking[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model CustomerProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone            String?
+  address          String?
+  emergencyContact String?
+  emergencyRel     String?
+
+  residents        Resident[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model AdminProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position String?
+}
+
+model House {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  address     String?
+  description String?  @db.Text
+  images      String[]
+  isActive    Boolean  @default(true)
+
+  listings    Listing[]
+  galleryImages GalleryImage[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+  houseId     String
+  house       House         @relation(fields: [houseId], references: [id], onDelete: Cascade)
+
+  title       String
+  type        ListingType
+  price       Float
+  capacity    Int           @default(1)
+  occupied    Int           @default(0)
+
+  status      ListingStatus @default(AVAILABLE)
+  description String?       @db.Text
+  images      String[]
+  amenities   String[]
+
+  isFeatured  Boolean       @default(false)
+  isPublished Boolean       @default(true)
+
+  bookings    Booking[]
+  residents   Resident[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum ListingType {
+  BED_SPACE
+  SINGLE_ROOM
+  APARTMENT
+}
+
+enum ListingStatus {
+  AVAILABLE
+  LIMITED
+  OCCUPIED
+  MAINTENANCE
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  listingId       String
+  listing         Listing       @relation(fields: [listingId], references: [id])
+
+  status          BookingStatus @default(PENDING)
+  checkInDate     DateTime
+  duration        StayDuration
+  durationCount   Int           @default(1)
+
+  residentName    String
+  residentPhone   String
+  residentAddress String?
+  emergencyContact String
+  emergencyRel    String
+  notes           String?       @db.Text
+
+  totalPrice      Float?
+
+  residents       Resident[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum StayDuration {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model Resident {
+  id                String          @id @default(cuid())
+  customerProfileId String
+  customerProfile   CustomerProfile @relation(fields: [customerProfileId], references: [id])
+
+  bookingId         String?
+  booking           Booking?        @relation(fields: [bookingId], references: [id])
+  listingId         String?
+  listing           Listing?        @relation(fields: [listingId], references: [id])
+
+  name              String
+  phone             String
+  address           String?
+  email             String?
+  emergencyContact  String
+  emergencyRel      String
+
+  checkInDate       DateTime
+  duration          StayDuration
+  durationCount     Int             @default(1)
+  dueDate           DateTime
+  status            ResidentStatus  @default(ACTIVE)
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+enum ResidentStatus {
+  ACTIVE
+  INACTIVE
+  OVERDUE
+  MOVED_OUT
+}
+
+model Testimonial {
+  id         String   @id @default(cuid())
+  authorName String
+  role       String?
+  content    String   @db.Text
+  rating     Int      @default(5)
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model GalleryImage {
+  id       String  @id @default(cuid())
+  houseId  String?
+  house    House?  @relation(fields: [houseId], references: [id])
+  url      String
+  caption  String?
+  sortOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @db.Text
+
+  updatedAt DateTime @updatedAt
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  type      String
+  status    String   @default("sent")
+  error     String?
+
+  createdAt DateTime @default(now())
+}

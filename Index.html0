@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HOJ Hostel | Safe, Clean & Comfortable Hostel in Ajah, Lagos</title>
+  <meta name="description" content="HOJ Hostel provides safe, clean and comfortable accommodation in Ajah, Lagos for students, corpers, trainees and visitors." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Clash+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0a0a0c;
+      --bg-soft:#121216;
+      --panel:rgba(255,255,255,0.06);
+      --panel-2:rgba(255,255,255,0.09);
+      --line:rgba(255,255,255,0.1);
+      --text:#f5f5f7;
+      --muted:#b1b1ba;
+      --orange:#ff7a1a;
+      --orange-2:#ff9f5a;
+      --orange-soft:rgba(255,122,26,0.15);
+      --shadow:0 25px 70px rgba(0,0,0,0.35);
+      --radius:24px;
+      --max:1180px;
+      --transition:all .35s ease;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:'Inter',sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,122,26,.12), transparent 22%),
+        radial-gradient(circle at top right, rgba(255,255,255,.05), transparent 18%),
+        linear-gradient(180deg, #080809 0%, #0d0d10 100%);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size:34px 34px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.15), rgba(0,0,0,0));
+    }
+
+    a{text-decoration:none;color:inherit}
+    img{max-width:100%;display:block}
+    .container{width:min(92%, var(--max));margin:0 auto;position:relative;z-index:1}
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:999;
+      backdrop-filter:blur(14px);
+      background:rgba(8,8,10,.72);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      min-height:78px;
+      gap:20px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+
+    .brand-mark{
+      width:50px;
+      height:50px;
+      border-radius:16px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.15), transparent 40%),
+        linear-gradient(135deg, #1c1c22, #0e0e12);
+      border:1px solid rgba(255,255,255,.08);
+      display:grid;
+      place-items:center;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .brand-mark::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg, rgba(255,122,26,.16), transparent 65%);
+    }
+
+    .brand-mark span{
+      font-family:'Clash Display',sans-serif;
+      font-size:1.1rem;
+      font-weight:700;
+      color:var(--orange);
+      position:relative;
+      z-index:1;
+    }
+
+    .brand-text strong{
+      display:block;
+      font-size:1rem;
+      letter-spacing:.01em;
+    }
+
+    .brand-text small{
+      display:block;
+      color:var(--muted);
+      margin-top:3px;
+      font-size:.76rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .nav-links{
+      display:flex;
+      gap:28px;
+      align-items:center;
+    }
+
+    .nav-links a{
+      color:var(--muted);
+      font-weight:500;
+      font-size:.96rem;
+      transition:var(--transition);
+    }
+
+    .nav-links a:hover{color:#fff}
+
+    .nav-cta{
+      padding:12px 18px;
+      border-radius:999px;
+      background:linear-gradient(135deg, var(--orange), var(--orange-2));
+      color:#111;
+      font-weight:800;
+      box-shadow:0 10px 30px rgba(255,122,26,.28);
+    }
+
+    .menu-btn{
+      display:none;
+      width:48px;
+      height:48px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      font-size:1.2rem;
+      cursor:pointer;
+    }
+
+    .hero{
+      padding:58px 0 44px;
+      position:relative;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.12fr .88fr;
+      gap:24px;
+      align-items:stretch;
+    }
+
+    .glass{
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      backdrop-filter:blur(10px);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .hero-copy{
+      padding:48px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:var(--orange-soft);
+      border:1px solid rgba(255,122,26,.22);
+      color:#ffd2b0;
+      font-size:.84rem;
+      font-weight:700;
+      margin-bottom:20px;
+    }
+
+    .hero h1{
+      margin:0;
+      font-family:'Clash Display',sans-serif;
+      font-size:clamp(2.6rem, 6vw, 5rem);
+      line-height:.95;
+      letter-spacing:-.04em;
+      max-width:11ch;
+    }
+
+    .hero h1 .accent{
+      color:var(--orange);
+    }
+
+    .hero p{
+      margin:20px 0 28px;
+      color:var(--muted);
+      line-height:1.8;
+      font-size:1.02rem;
+      max-width:620px;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      margin-bottom:28px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:15px 22px;
+      border-radius:999px;
+      font-weight:800;
+      transition:var(--transition);
+      border:1px solid transparent;
+    }
+
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{
+      background:linear-gradient(135deg, var(--orange), var(--orange-2));
+      color:#101010;
+      box-shadow:0 12px 30px rgba(255,122,26,.25);
+    }
+    .btn-secondary{
+      background:rgba(255,255,255,.04);
+      border-color:rgba(255,255,255,.1);
+      color:#fff;
+    }
+
+    .trust-row{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+
+    .trust-pill{
+      padding:14px 15px;
+      border-radius:18px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      font-size:.9rem;
+      color:#e9e9ec;
+      text-align:center;
+      font-weight:700;
+    }
+
+    .hero-visual{
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .main-visual{
+      min-height:430px;
+      border-radius:24px;
+      overflow:hidden;
+      position:relative;
+      border:1px solid rgba(255,255,255,.08);
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.58)),
+        url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+    }
+
+    .main-visual .overlay{
+      position:absolute;
+      inset:auto 18px 18px 18px;
+      padding:20px;
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(20,20,24,.35), rgba(20,20,24,.82));
+      backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .overlay strong{
+      font-size:1.1rem;
+      display:block;
+      margin-bottom:6px;
+    }
+
+    .overlay span{
+      color:#ddd;
+      font-size:.95rem;
+      line-height:1.6;
+    }
+
+    .mini-cards{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+    }
+
+    .mini-card{
+      padding:18px;
+      border-radius:20px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .mini-card strong{
+      display:block;
+      margin-bottom:6px;
+    }
+
+    .mini-card span{
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.6;
+    }
+
+    section{
+      padding:30px 0;
+      position:relative;
+      z-index:1;
+    }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:end;
+      margin-bottom:22px;
+    }
+
+    .section-head h2{
+      margin:0;
+      font-family:'Clash Display',sans-serif;
+      font-size:clamp(1.7rem, 4vw, 3rem);
+      letter-spacing:-.03em;
+    }
+
+    .section-head p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.8;
+      max-width:720px;
+    }
+
+    .features{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    .feature{
+      padding:24px;
+      transition:var(--transition);
+    }
+
+    .feature:hover{
+      transform:translateY(-5px);
+      border-color:rgba(255,122,26,.22);
+    }
+
+    .icon{
+      width:54px;
+      height:54px;
+      border-radius:18px;
+      display:grid;
+      place-items:center;
+      margin-bottom:16px;
+      background:linear-gradient(135deg, rgba(255,122,26,.18), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.08);
+      font-size:1.25rem;
+      color:var(--orange);
+    }
+
+    .feature h3{
+      margin:0 0 10px;
+      font-size:1.08rem;
+    }
+
+    .feature p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.75;
+      font-size:.96rem;
+    }
+
+    .about-grid,
+    .location-grid,
+    .cta-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+      align-items:stretch;
+    }
+
+    .about-box,
+    .location-box,
+    .map-box,
+    .cta-box{
+      padding:30px;
+    }
+
+    .about-box h3,
+    .location-box h3,
+    .map-box h3,
+    .cta-box h3{
+      margin:0 0 12px;
+      font-size:1.35rem;
+      font-family:'Clash Display',sans-serif;
+      letter-spacing:-.02em;
+    }
+
+    .about-box p,
+    .location-box p,
+    .map-box p,
+    .cta-box p{
+      margin:0 0 18px;
+      color:var(--muted);
+      line-height:1.8;
+    }
+
+    .about-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .about-list div{
+      padding:14px 16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      color:#ececf0;
+      font-weight:600;
+    }
+
+    .gallery{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:18px;
+    }
+
+    .gallery-main,
+    .gallery-stack .stack{
+      border-radius:26px;
+      overflow:hidden;
+      position:relative;
+      border:1px solid rgba(255,255,255,.08);
+      min-height:260px;
+      box-shadow:var(--shadow);
+      background-size:cover;
+      background-position:center;
+    }
+
+    .gallery-main{
+      min-height:500px;
+      background-image:
+        linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.52)),
+        url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80');
+    }
+
+    .gallery-stack{
+      display:grid;
+      gap:18px;
+    }
+
+    .stack.one{
+      background-image:
+        linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.52)),
+        url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1000&q=80');
+    }
+
+    .stack.two{
+      background-image:
+        linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.52)),
+        url('https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1000&q=80');
+    }
+
+    .image-caption{
+      position:absolute;
+      left:18px;
+      right:18px;
+      bottom:18px;
+      padding:16px 18px;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(18,18,22,.34), rgba(18,18,22,.84));
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .image-caption strong{
+      display:block;
+      margin-bottom:5px;
+      font-size:1rem;
+    }
+
+    .image-caption span{
+      color:#ddd;
+      font-size:.92rem;
+      line-height:1.6;
+    }
+
+    .stay-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    .stay-card{
+      padding:28px;
+      position:relative;
+      overflow:hidden;
+      transition:var(--transition);
+    }
+
+    .stay-card:hover{
+      transform:translateY(-5px);
+      border-color:rgba(255,122,26,.2);
+    }
+
+    .stay-card::after{
+      content:"";
+      position:absolute;
+      right:-36px;
+      top:-36px;
+      width:120px;
+      height:120px;
+      border-radius:50%;
+      background:rgba(255,122,26,.08);
+      filter:blur(4px);
+    }
+
+    .stay-card h3{
+      margin:0 0 8px;
+      font-size:1.25rem;
+      font-family:'Clash Display',sans-serif;
+    }
+
+    .stay-card p{
+      margin:0 0 18px;
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .stay-card ul{
+      list-style:none;
+      padding:0;
+      margin:0;
+      display:grid;
+      gap:10px;
+    }
+
+    .stay-card li{
+      color:#efeff2;
+      font-size:.95rem;
+    }
+
+    .contact-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .contact-item{
+      padding:15px 16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .contact-item strong{
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .contact-item span{
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .map-box{
+      min-height:100%;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+        radial-gradient(circle at top left, rgba(255,122,26,.12), transparent 28%);
+    }
+
+    .map-preview{
+      margin-top:18px;
+      border-radius:22px;
+      min-height:250px;
+      border:1px solid rgba(255,255,255,.08);
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.14), rgba(0,0,0,.4)),
+        url('https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+      display:flex;
+      align-items:flex-end;
+      padding:18px;
+    }
+
+    .map-chip{
+      padding:12px 14px;
+      border-radius:999px;
+      background:rgba(10,10,12,.75);
+      border:1px solid rgba(255,255,255,.08);
+      color:#fff;
+      font-weight:700;
+      backdrop-filter:blur(8px);
+    }
+
+    .final-cta{
+      padding:34px;
+      background:
+        linear-gradient(135deg, rgba(255,122,26,.16), rgba(255,255,255,.03)),
+        rgba(255,255,255,.03);
+    }
+
+    .final-cta .cta-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+
+    footer{
+      padding:14px 0 34px;
+      color:var(--muted);
+      position:relative;
+      z-index:1;
+    }
+
+    .footer-box{
+      padding-top:22px;
+      border-top:1px solid rgba(255,255,255,.08);
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      font-size:.95rem;
+    }
+
+    .wa-float{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:999;
+      width:62px;
+      height:62px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      font-size:1.6rem;
+      background:linear-gradient(135deg, #25d366, #18b453);
+      color:#fff;
+      box-shadow:0 15px 40px rgba(37,211,102,.35);
+    }
+
+    .reveal{
+      opacity:0;
+      transform:translateY(28px);
+      transition:opacity .75s ease, transform .75s ease;
+    }
+
+    .reveal.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    @media (max-width: 1050px){
+      .hero-grid,
+      .about-grid,
+      .location-grid,
+      .gallery,
+      .cta-grid{
+        grid-template-columns:1fr;
+      }
+
+      .features,
+      .stay-grid{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .trust-row{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px){
+      .menu-btn{display:grid;place-items:center}
+      .nav-links{
+        position:absolute;
+        left:4%;
+        right:4%;
+        top:76px;
+        display:none;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:16px;
+        padding:18px;
+        border-radius:20px;
+        background:rgba(10,10,12,.96);
+        border:1px solid rgba(255,255,255,.08);
+        box-shadow:var(--shadow);
+      }
+      .nav-links.open{display:flex}
+      .hero-copy{padding:28px}
+      .hero-visual{padding:14px}
+      .features,
+      .stay-grid,
+      .trust-row,
+      .mini-cards{
+        grid-template-columns:1fr;
+      }
+      .section-head{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .main-visual{min-height:350px}
+      .gallery-main{min-height:320px}
+      .gallery-stack .stack{min-height:220px}
+      .final-cta{padding:24px}
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container nav">
+      <a href="#home" class="brand">
+        <div class="brand-mark"><span>HOJ</span></div>
+        <div class="brand-text">
+          <strong>HOJ Hostel</strong>
+          <small>House of Jesse · Ajah, Lagos</small>
+        </div>
+      </a>
+
+      <button class="menu-btn" id="menuBtn">☰</button>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#about">About</a>
+        <a href="#rooms">Rooms</a>
+        <a href="#stay">Stay Options</a>
+        <a href="#location">Location</a>
+        <a href="https://wa.me/2347052444573" target="_blank" class="nav-cta">Book via WhatsApp</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="glass hero-copy reveal">
+          <div class="badge">Safe · Clean · Comfortable Accommodation</div>
+          <h1>Safe, Clean & <span class="accent">Comfortable Hostel</span> in Ajah, Lagos.</h1>
+          <p>
+            HOJ Hostel provides a welcoming accommodation experience for students, corpers,
+            trainees, and visitors. Designed for comfort, trust, and convenience, with flexible
+            stay options from daily to monthly bookings.
+          </p>
+
+          <div class="hero-actions">
+            <a href="https://wa.me/2347052444573" target="_blank" class="btn btn-primary">Book via WhatsApp</a>
+            <a href="#rooms" class="btn btn-secondary">View Rooms</a>
+          </div>
+
+          <div class="trust-row">
+            <div class="trust-pill">CCTV Surveillance</div>
+            <div class="trust-pill">Steady Electricity</div>
+            <div class="trust-pill">Male & Female Hostel</div>
+            <div class="trust-pill">Ajah, Lagos</div>
+          </div>
+        </div>
+
+        <div class="glass hero-visual reveal">
+          <div class="main-visual">
+            <div class="overlay">
+              <strong>Trust starts with presentation.</strong>
+              <span>
+                A cleaner, more professional online presence helps guests quickly understand
+                the rooms, features, location, and booking process.
+              </span>
+            </div>
+          </div>
+
+          <div class="mini-cards">
+            <div class="mini-card">
+              <strong>Flexible Booking</strong>
+              <span>Stay for a day, a week, or for months depending on your needs.</span>
+            </div>
+            <div class="mini-card">
+              <strong>Comfort & Security</strong>
+              <span>Safe environment, clean spaces, and a setup built for peace of mind.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2>Why HOJ Hostel stands out</h2>
+            <p>
+              Accommodation decisions are driven by trust, clarity, and convenience.
+              This concept highlights the features guests care about most at first glance.
+            </p>
+          </div>
+        </div>
+
+        <div class="features">
+          <div class="glass feature reveal">
+            <div class="icon">🛡️</div>
+            <h3>Safe Environment</h3>
+            <p>Built to help guests feel secure and comfortable from arrival to checkout.</p>
+          </div>
+
+          <div class="glass feature reveal">
+            <div class="icon">🎥</div>
+            <h3>CCTV Surveillance</h3>
+            <p>Security-focused presentation that reassures students, visitors, and working guests.</p>
+          </div>
+
+          <div class="glass feature reveal">
+            <div class="icon">⚡</div>
+            <h3>Steady Electricity</h3>
+            <p>A practical value point that matters for comfort, productivity, and peace of mind.</p>
+          </div>
+
+          <div class="glass feature reveal">
+            <div class="icon">🛏️</div>
+            <h3>Clean Spacious Rooms</h3>
+            <p>Well-presented room visuals help guests understand quality faster and trust the brand more.</p>
+          </div>
+
+          <div class="glass feature reveal">
+            <div class="icon">📍</div>
+            <h3>Ajah, Lagos</h3>
+            <p>Clear location details make the hostel easier to find and more credible to first-time guests.</p>
+          </div>
+
+          <div class="glass feature reveal">
+            <div class="icon">💬</div>
+            <h3>Easy WhatsApp Booking</h3>
+            <p>Direct communication creates a smoother path from interest to inquiry and booking.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="container about-grid">
+        <div class="glass about-box reveal">
+          <h3>About HOJ Hostel</h3>
+          <p>
+            House of Jesse offers safe, clean, and comfortable accommodation in Ajah, Lagos
+            for both male and female guests. It is ideal for students, corpers, trainees,
+            and visitors looking for a reliable place to stay for a short or extended period.
+          </p>
+          <p>
+            The goal of this concept is to present the hostel in a more polished way online,
+            helping guests understand the value immediately and feel more confident about booking.
+          </p>
+        </div>
+
+        <div class="glass about-box reveal">
+          <h3>What guests need to know fast</h3>
+          <div class="about-list">
+            <div>Male & female accommodation</div>
+            <div>Daily, weekly, and monthly stay options</div>
+            <div>Clean rooms and welcoming environment</div>
+            <div>CCTV surveillance for added security</div>
+            <div>Steady electricity and practical comfort</div>
+            <div>Quick WhatsApp booking and inquiry process</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="rooms">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2>Room & accommodation preview</h2>
+            <p>
+              A strong room showcase builds trust quickly. Guests want to see comfort, cleanliness,
+              layout, and the general feel before making an inquiry.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery">
+          <div class="gallery-main reveal">
+            <div class="image-caption">
+              <strong>Clean and spacious accommodation</strong>
+              <span>Designed to make first impressions feel safe, comfortable, and professional.</span>
+            </div>
+          </div>
+
+          <div class="gallery-stack">
+            <div class="stack one reveal">
+              <div class="image-caption">
+                <strong>Comfort-focused room setup</strong>
+                <span>Simple, neat, and inviting presentation that guests can trust.</span>
+              </div>
+            </div>
+            <div class="stack two reveal">
+              <div class="image-caption">
+                <strong>Secure and welcoming environment</strong>
+                <span>Better visuals make the brand feel more serious and more bookable.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="stay">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <h2>Flexible stay options</h2>
+            <p>
+              Different guests have different needs. This section makes it easy to understand
+              that HOJ Hostel is suitable for short and extended stays.
+            </p>
+          </div>
+        </div>
+
+        <div class="stay-grid">
+          <div class="glass stay-card reveal">
+            <h3>Daily Stay</h3>
+            <p>Perfect for visitors or short stopovers who need comfort and convenience fast.</p>
+            <ul>
+              <li>✔ Ideal for short-term needs</li>
+              <li>✔ Quick inquiry process</li>
+              <li>✔ Easy WhatsApp booking</li>
+            </ul>
+          </div>
+
+          <div class="glass stay-card reveal">
+            <h3>Weekly Stay</h3>
+            <p>Suitable for trainees, temporary assignments, and guests staying for several days.</p>
+            <ul>
+              <li>✔ Flexible and practical</li>
+              <li>✔ Comfortable room access</li>
+              <li>✔ Reliable accommodation option</li>
+            </ul>
+          </div>
+
+          <div class="glass stay-card reveal">
+            <h3>Monthly Stay</h3>
+            <p>Great for students, corpers, and longer-term guests who need a stable place to stay.</p>
+            <ul>
+              <li>✔ Better long-term convenience</li>
+              <li>✔ Safe and structured environment</li>
+              <li>✔ Clear contact and booking support</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="location">
+      <div class="container location-grid">
+        <div class="glass location-box reveal">
+          <h3>Location & contact</h3>
+          <p>
+            HOJ Hostel is located in Ajah, Lagos — a convenient and recognizable area
+            for students, working guests, and visitors looking for accessible accommodation.
+          </p>
+
+          <div class="contact-list">
+            <div class="contact-item">
+              <strong>Brand</strong>
+              <span>HOJ Hostel / House of Jesse</span>
+            </div>
+            <div class="contact-item">
+              <strong>Location</strong>
+              <span>Ajah, Lagos</span>
+            </div>
+            <div class="contact-item">
+              <strong>WhatsApp / Booking</strong>
+              <span>07052444573</span>
+            </div>
+            <div class="contact-item">
+              <strong>Suitable For</strong>
+              <span>Students, corpers, trainees, visitors</span>
+            </div>
+          </div>
+
+          <a href="https://wa.me/2347052444573" target="_blank" class="btn btn-primary">Chat on WhatsApp</a>
+        </div>
+
+        <div class="glass map-box reveal">
+          <h3>Ajah, Lagos</h3>
+          <p>
+            Add exact address details here later for a complete production version.
+            For this demo, the focus is on showing a clean booking-ready direction.
+          </p>
+          <div class="map-preview">
+            <div class="map-chip">Location: Ajah, Lagos</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="book">
+      <div class="container">
+        <div class="glass final-cta reveal">
+          <div class="cta-row">
+            <div>
+              <h3 style="margin:0 0 10px;font-family:'Clash Display',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);letter-spacing:-.03em);">
+                Ready to book or make an inquiry?
+              </h3>
+              <p style="margin:0;color:var(--muted);line-height:1.8;max-width:720px;">
+                Reach HOJ Hostel directly on WhatsApp for room availability, stay options,
+                and booking information.
+              </p>
+            </div>
+            <a href="https://wa.me/2347052444573" target="_blank" class="btn btn-primary">Book via WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-box">
+      <div>© 2026 HOJ Hostel · House of Jesse</div>
+      <div>Ajah, Lagos · WhatsApp: 07052444573</div>
+    </div>
+  </footer>
+
+  <a class="wa-float" href="https://wa.me/2347052444573" target="_blank" aria-label="WhatsApp booking">✆</a>
+
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    menuBtn.addEventListener('click', () => {
+      navLinks.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => navLinks.classList.remove('open'));
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('show');
+        }
+      });
+    }, { threshold: 0.14 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

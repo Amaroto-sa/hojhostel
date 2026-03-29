@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -11,7 +11,7 @@ export default function BookPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-  
+
   const [form, setForm] = useState({
     listingId: "",
     checkInDate: "",
@@ -25,12 +25,24 @@ export default function BookPage() {
     notes: "",
   });
 
-  const accommodations = [
-    { id: "7bed", label: "7 Bed Spaces — ₦30,000/week" },
-    { id: "14bed", label: "14 Bed Spaces — ₦40,000/week" },
-    { id: "singleA", label: "Single Room A — ₦40,000/week" },
-    { id: "singleB", label: "Single Room B — ₦70,000/week" },
-  ];
+  const [accommodations, setAccommodations] = useState<{ id: string; label: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/listings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const list = data.map((l: any) => ({
+            id: l.id,
+            label: `${l.title} @ ${l.house?.name || "HOJ"} — ₦${l.price.toLocaleString()}/wk`
+          }));
+          setAccommodations(list);
+        }
+      })
+      .catch(() => {
+        // Fallback or ignore
+      });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -38,7 +50,7 @@ export default function BookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!session) {
       router.push("/login");
       return;
@@ -110,7 +122,7 @@ export default function BookPage() {
 
           <form onSubmit={handleSubmit} className="glass p-6 md:p-8 space-y-6">
             <h2 className="font-display text-xl mb-1">Resident Information</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-300">Full Name *</label>

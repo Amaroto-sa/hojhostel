@@ -101,8 +101,10 @@ export default function AdminResidentsPage() {
                   <td className="py-4 px-5 text-right">
                     {r.status === "ACTIVE" && (
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => updateStatus(r.id, "ACTIVE")} title="Mark renewed/paid"
-                          className="p-2 rounded-lg hover:bg-green-500/10"><CheckCircle size={16} className="text-green-400" /></button>
+                        <button onClick={() => updateStatus(r.id, "RENEW")} title="Renew / Extend Stay (+1 duration)"
+                          className="px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 font-medium text-xs hover:bg-green-500/20 transition flex items-center gap-1">
+                          <CheckCircle size={14} /> Renew Action
+                        </button>
                         <button onClick={() => updateStatus(r.id, "MOVED_OUT")} title="Mark moved out"
                           className="p-2 rounded-lg hover:bg-blue-500/10"><MoveOut size={16} className="text-blue-400" /></button>
                       </div>

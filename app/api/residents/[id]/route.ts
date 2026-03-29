@@ -35,6 +35,22 @@ export async function PATCH(
       }
     }
 
+    // If renewing
+    if (body.action === "RENEW") {
+      const newDurationCount = resident.durationCount + 1;
+      const newDueDate = calculateDueDate(
+        new Date(resident.checkInDate),
+        resident.duration,
+        newDurationCount
+      );
+
+      const renewed = await prisma.resident.update({
+        where: { id: params.id },
+        data: { durationCount: newDurationCount, dueDate: newDueDate, status: "ACTIVE" },
+      });
+      return NextResponse.json(renewed);
+    }
+
     const updated = await prisma.resident.update({
       where: { id: params.id },
       data: { ...rest, status: newStatus },

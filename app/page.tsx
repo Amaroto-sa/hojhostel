@@ -1,6 +1,45 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
-export default function Home() {
+// Ensure the page fetches fresh data from the database
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  let houses: any[] = [];
+  let listings: any[] = [];
+  let testimonials: any[] = [];
+  let settingsMap: Record<string, string> = {};
+
+  try {
+    // Fetch live data from the database
+    houses = await prisma.house.findMany({ where: { isActive: true }, orderBy: { name: "asc" } });
+    listings = await prisma.listing.findMany({ where: { isPublished: true }, include: { house: true }, orderBy: { price: "asc" } });
+    testimonials = await prisma.testimonial.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" } });
+
+    const settings = await prisma.setting.findMany();
+    settings.forEach((s) => { settingsMap[s.key] = s.value; });
+  } catch (e) {
+    // Database might not be connected yet (build time)
+  }
+
+  // Use dynamic settings with fallbacks
+  const whatsapp = settingsMap["whatsapp_number"] || "+2348145416775";
+  const whatsappLink = `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`;
+  const globalIntro = settingsMap["hostel_intro"] || "House of Jesse Hostel isn't just a place to sleep — it's your comfortable, affordable, and conveniently located accommodation with flexible payment.";
+
+  // Fallback data if DB is empty
+  const displayListings = listings.length > 0 ? listings : [
+    { title: "7 Bed Spaces", price: 30000, amenities: ["Shared accommodation", "Storage included", "All amenities access"], isFeatured: false },
+    { title: "14 Bed Spaces", price: 40000, amenities: ["Premium shared space", "Extra ventilation", "All amenities access"], isFeatured: false },
+    { title: "Single Room A", price: 40000, amenities: ["Private convenience", "Standard size", "All amenities included"], isFeatured: false },
+    { title: "Single Room B", price: 70000, amenities: ["Maximum privacy", "Enhanced features", "Priority support"], isFeatured: true },
+  ];
+
+  const displayHouses = houses.length > 0 ? houses : [
+    { name: "HOJ 1: Golden Rays Estate", location: "Olokonla, Ajah, Lagos", description: "Our primary operational location. Fully fitted with CCTV, steady electricity, and all premium amenities." },
+    { name: "HOJ 2: Greenland Estate", location: "Olokonla Ajah, Lagos", description: "Our second location. We are currently finalizing our premium setup to offer the highest level of comfort." },
+  ];
+
   return (
     <div className="container mx-auto px-4 w-[92%] max-w-[1180px] pb-24">
 
@@ -15,13 +54,13 @@ export default function Home() {
               Safe, Clean & <span className="text-[#ff7a1a]">Comfortable Hostel</span> in Ajah, Lagos.
             </h1>
             <p className="text-[#b1b1ba] leading-relaxed text-base md:text-lg max-w-[620px] mb-8">
-              House of Jesse Hostel isn't just a place to sleep — it's your comfortable, affordable, and conveniently located accommodation with flexible payment. Suitable for starters, NYSC members, students, young professionals, and travelers in need of a clean, safe space for a night, week, or a month — we've got you covered.
+              {globalIntro}
             </p>
             <div className="flex flex-wrap gap-4 mb-8">
               <Link href="/availability" className="inline-flex items-center justify-center px-6 py-3.5 rounded-full font-extrabold transition-transform hover:-translate-y-0.5 bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#101010] shadow-[0_12px_30px_rgba(255,122,26,0.25)]">
                 Check Availability
               </Link>
-              <Link href="https://wa.me/2348145416775" target="_blank" className="inline-flex items-center justify-center px-6 py-3.5 rounded-full font-extrabold transition-transform hover:-translate-y-0.5 bg-white/5 border border-white/10 text-white">
+              <Link href={whatsappLink} target="_blank" className="inline-flex items-center justify-center px-6 py-3.5 rounded-full font-extrabold transition-transform hover:-translate-y-0.5 bg-white/5 border border-white/10 text-white">
                 Book via WhatsApp
               </Link>
               <Link href="/login" className="inline-flex items-center justify-center px-6 py-3.5 rounded-full font-extrabold transition-transform hover:-translate-y-0.5 bg-white/5 border border-white/10 text-white">
@@ -127,22 +166,23 @@ export default function Home() {
           <p className="text-[#b1b1ba] max-w-2xl">Clean, comfortable, and affordable room options across our key locations.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {[
-            { title: "7 Bed Spaces", price: "₦30,000", features: ["Shared accommodation", "Storage included", "All amenities access"], featured: false },
-            { title: "14 Bed Spaces", price: "₦40,000", features: ["Premium shared space", "Extra ventilation", "All amenities access"], featured: false },
-            { title: "Single Room A", price: "₦40,000", features: ["Private convenience", "Standard size", "All amenities included"], featured: false },
-            { title: "Single Room B", price: "₦70,000", features: ["Maximum privacy", "Enhanced features", "Priority support"], featured: true },
-          ].map((item) => (
-            <div key={item.title} className={`glass p-6 group hover:-translate-y-1 transition-transform ${item.featured ? 'border-[#ff7a1a]/30 relative overflow-hidden' : ''}`}>
-              {item.featured && <div className="absolute top-0 right-0 bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] text-xs font-bold px-3 py-1 rounded-bl-xl">Premium</div>}
+          {displayListings.map((item: any) => (
+            <div key={item.id || item.title} className={`glass p-6 group hover:-translate-y-1 transition-transform ${item.isFeatured ? 'border-[#ff7a1a]/30 relative overflow-hidden' : ''}`}>
+              {item.isFeatured && <div className="absolute top-0 right-0 bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] text-xs font-bold px-3 py-1 rounded-bl-xl">Premium</div>}
               <h3 className="font-display text-xl mb-1">{item.title}</h3>
-              <p className="text-[#ff7a1a] font-bold text-xl mb-4">{item.price} <span className="text-sm text-[#b1b1ba] font-normal">/ week</span></p>
-              <ul className="space-y-2 mb-6 text-sm text-gray-300">
-                {item.features.map((f) => <li key={f}>✔ {f}</li>)}
+              {item.house && <p className="text-xs text-gray-500 mb-2">{item.house.name}</p>}
+              <p className="text-[#ff7a1a] font-bold text-xl mb-4">₦{item.price.toLocaleString()} <span className="text-sm text-[#b1b1ba] font-normal">/ week</span></p>
+              <ul className="space-y-2 mb-6 text-sm text-gray-300 min-h-[100px]">
+                {(item.amenities || []).slice(0, 4).map((f: string) => <li key={f}>✔ {f}</li>)}
+                {(!item.amenities || item.amenities.length === 0) && (
+                  <>
+                    <li>✔ Access to all amenities</li>
+                    <li>✔ Flexible duration</li>
+                  </>
+                )}
               </ul>
-              <Link href="/book" className={`block text-center w-full py-2.5 rounded-full font-bold transition ${
-                item.featured ? 'bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] shadow-[0_10px_30px_rgba(255,122,26,0.28)]' : 'bg-white/5 border border-white/10 hover:bg-white/10'
-              }`}>Inquire</Link>
+              <Link href="/book" className={`block text-center w-full py-2.5 rounded-full font-bold transition ${item.isFeatured ? 'bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] shadow-[0_10px_30px_rgba(255,122,26,0.28)]' : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                }`}>Inquire</Link>
             </div>
           ))}
         </div>
@@ -152,21 +192,21 @@ export default function Home() {
       <section className="py-10" id="locations">
         <div className="mb-8">
           <h2 className="font-display text-3xl md:text-4xl tracking-tight mb-2">Our Locations</h2>
-          <p className="text-[#b1b1ba] max-w-2xl">Two well-located properties in the Ajah axis of Lagos.</p>
+          <p className="text-[#b1b1ba] max-w-2xl">Well-located properties in the Ajah axis of Lagos.</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="glass p-8 md:p-10">
-            <h3 className="font-display text-2xl mb-3">HOJ 1: Golden Rays Estate</h3>
-            <p className="text-[#b1b1ba] text-sm mb-1">📍 Olokonla, Ajah, Lagos</p>
-            <p className="text-[#b1b1ba] leading-relaxed mt-3 mb-6">Our primary operational location. Fully fitted with CCTV, steady electricity, and all premium amenities for a comfortable extended stay.</p>
-            <Link href="/availability" className="inline-flex items-center text-[#ff7a1a] font-bold hover:text-[#ff9f5a] transition">Check Availability →</Link>
-          </div>
-          <div className="glass p-8 md:p-10 relative overflow-hidden">
-            <h3 className="font-display text-2xl mb-3">HOJ 2: Greenland Estate</h3>
-            <p className="text-[#b1b1ba] text-sm mb-1">📍 Olokonla Ajah, Lagos</p>
-            <p className="text-[#b1b1ba] leading-relaxed mt-3 mb-6">Our second location. We are currently finalizing our premium setup to offer the highest level of comfort. Same trusted HOJ standards.</p>
-            <div className="inline-flex px-3 py-1 bg-white/5 border border-white/10 rounded-full text-sm font-semibold text-gray-300">More pictures coming soon</div>
-          </div>
+          {displayHouses.map((house: any, idx: number) => (
+            <div key={house.id || idx} className="glass p-8 md:p-10 relative overflow-hidden">
+              <h3 className="font-display text-2xl mb-3">{house.name}</h3>
+              <p className="text-[#b1b1ba] text-sm mb-1">📍 {house.location}</p>
+              <p className="text-[#b1b1ba] leading-relaxed mt-3 mb-6">{house.description}</p>
+              {idx === 0 ? (
+                <Link href="/availability" className="inline-flex items-center text-[#ff7a1a] font-bold hover:text-[#ff9f5a] transition">Check Availability →</Link>
+              ) : (
+                <div className="inline-flex px-3 py-1 bg-white/5 border border-white/10 rounded-full text-sm font-semibold text-gray-300">More updates coming soon</div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -209,11 +249,30 @@ export default function Home() {
           <h2 className="font-display text-3xl md:text-4xl tracking-tight mb-2">What Our Guests Say</h2>
           <p className="text-[#b1b1ba] max-w-2xl">Real experiences from real residents.</p>
         </div>
-        <div className="glass p-10 text-center">
-          <div className="w-16 h-16 mx-auto rounded-full bg-[rgba(255,122,26,0.12)] border border-[rgba(255,122,26,0.15)] flex items-center justify-center text-2xl mb-4">💬</div>
-          <h3 className="font-display text-xl mb-2">Client Testimonials Will Be Added Here</h3>
-          <p className="text-[#b1b1ba] text-sm max-w-lg mx-auto">More reviews coming soon. Our admin team will publish verified guest testimonials as they come in.</p>
-        </div>
+
+        {testimonials.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {testimonials.map((t: any) => (
+              <div key={t.id} className="glass p-8 relative">
+                <div className="text-4xl text-[#ff7a1a]/20 absolute top-4 right-6 font-serif">"</div>
+                <div className="flex items-center gap-1 text-[#ff7a1a] mb-4 text-sm">
+                  {Array(t.rating).fill("★").join("")}
+                </div>
+                <p className="text-gray-300 text-sm leading-relaxed mb-6 italic">"{t.content}"</p>
+                <div className="border-t border-[rgba(255,255,255,0.08)] pt-4 mt-auto">
+                  <strong className="block text-white text-sm">{t.authorName}</strong>
+                  {t.role && <span className="text-xs text-[#b1b1ba]">{t.role}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="glass p-10 text-center">
+            <div className="w-16 h-16 mx-auto rounded-full bg-[rgba(255,122,26,0.12)] border border-[rgba(255,122,26,0.15)] flex items-center justify-center text-2xl mb-4">💬</div>
+            <h3 className="font-display text-xl mb-2">Client Testimonials</h3>
+            <p className="text-[#b1b1ba] text-sm max-w-lg mx-auto">Reviews from our residents will be showcased here.</p>
+          </div>
+        )}
       </section>
 
       {/* ── BOOKING / INQUIRY ── */}
@@ -223,14 +282,14 @@ export default function Home() {
             <div>
               <h2 className="font-display text-[clamp(1.6rem,3vw,2.4rem)] tracking-tight mb-3">Ready to book or make an inquiry?</h2>
               <p className="text-[#b1b1ba] max-w-xl leading-relaxed">
-                Submit a booking request through our online form, or reach out directly on WhatsApp for personalized assistance. House rules will be included in your welcome email.
+                Submit a booking request through our online form, or reach out directly on WhatsApp for personalized assistance.
               </p>
             </div>
             <div className="flex flex-col gap-3 shrink-0">
               <Link href="/book" className="px-8 py-3.5 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold shadow-[0_12px_30px_rgba(255,122,26,0.25)] text-center hover:-translate-y-0.5 transition-transform">
                 Book Online
               </Link>
-              <Link href="https://wa.me/2348145416775" target="_blank" className="px-8 py-3.5 rounded-full bg-white/5 border border-white/10 text-white font-bold text-center hover:-translate-y-0.5 transition-transform">
+              <Link href={whatsappLink} target="_blank" className="px-8 py-3.5 rounded-full bg-white/5 border border-white/10 text-white font-bold text-center hover:-translate-y-0.5 transition-transform">
                 Book via WhatsApp
               </Link>
             </div>
@@ -246,10 +305,10 @@ export default function Home() {
             <div className="space-y-4">
               {[
                 { label: "Brand", value: "HOJ Hostel / House of Jesse" },
-                { label: "WhatsApp / Booking", value: "+234 814 541 6775" },
-                { label: "Email", value: "houseofjessehostel@gmail.com" },
-                { label: "HOJ 1", value: "Golden Rays Estate, Olokonla, Ajah" },
-                { label: "HOJ 2", value: "Greenland Estate, Olokonla Ajah" },
+                { label: "WhatsApp / Booking", value: whatsapp },
+                { label: "Email", value: settingsMap["contact_email"] || "houseofjessehostel@gmail.com" },
+                { label: "HOJ 1", value: displayHouses[0]?.location || "Golden Rays Estate, Olokonla, Ajah" },
+                { label: "HOJ 2", value: displayHouses[1]?.location || "Greenland Estate, Olokonla Ajah" },
                 { label: "Suitable For", value: "Students, NYSC members, professionals, travelers" },
               ].map((c) => (
                 <div key={c.label} className="p-4 rounded-2xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)]">
@@ -258,18 +317,18 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <Link href="https://wa.me/2348145416775" target="_blank" className="inline-flex items-center justify-center mt-6 px-6 py-3 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold shadow-[0_10px_30px_rgba(255,122,26,0.28)]">
+            <Link href={whatsappLink} target="_blank" className="inline-flex items-center justify-center mt-6 px-6 py-3 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold shadow-[0_10px_30px_rgba(255,122,26,0.28)]">
               Chat on WhatsApp
             </Link>
           </div>
           <div className="glass p-8 flex flex-col justify-between">
             <div>
               <h2 className="font-display text-2xl mb-3">Ajah, Lagos</h2>
-              <p className="text-[#b1b1ba] leading-relaxed">Both HOJ locations are situated in the rapidly growing Ajah corridor of Lagos, offering easy access to Lekki, Victoria Island, and surrounding areas.</p>
+              <p className="text-[#b1b1ba] leading-relaxed">Our locations are situated in the rapidly growing Ajah corridor of Lagos, offering easy access to Lekki, Victoria Island, and surrounding areas.</p>
             </div>
             <div className="mt-6 rounded-2xl min-h-[250px] border border-white/10 bg-gradient-to-b from-black/20 to-black/40 bg-[url('https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center flex items-end p-5">
               <div className="px-4 py-2 rounded-full bg-[rgba(10,10,12,0.75)] border border-white/10 text-white font-bold text-sm backdrop-blur-sm">
-                📍 Olokonla, Ajah, Lagos
+                📍 {displayHouses[0]?.location || "Olokonla, Ajah, Lagos"}
               </div>
             </div>
           </div>

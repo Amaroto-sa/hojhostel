@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Save, UploadCloud } from "lucide-react";
 
 const defaultSettings = [

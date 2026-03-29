@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Home, Calendar, Settings, LogOut, MessageSquare, Star } from "lucide-react";
+import { LayoutDashboard, Users, Home, Calendar, Settings, LogOut, MessageSquare, Star, ImageIcon } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 
 export default async function AdminLayout({
   children,
@@ -15,12 +16,16 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
+  const logoSetting = await prisma.setting.findUnique({ where: { key: "logo_url" } });
+  const logoUrl = logoSetting?.value;
+
   const navItems = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/listings", label: "Listings & Houses", icon: Home },
     { href: "/admin/bookings", label: "Bookings", icon: Calendar },
     { href: "/admin/residents", label: "Residents", icon: Users },
     { href: "/admin/testimonials", label: "Testimonials", icon: Star },
+    { href: "/admin/gallery", label: "Gallery", icon: ImageIcon },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
 
@@ -30,7 +35,11 @@ export default async function AdminLayout({
       <aside className="w-[260px] border-r border-[rgba(255,255,255,0.08)] bg-[#0a0a0c] p-6 hidden lg:flex flex-col shrink-0">
         <Link href="/" className="mb-10 flex items-center gap-3">
           <div className="w-[45px] h-[45px] rounded-xl border border-[rgba(255,255,255,0.08)] flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-[#1c1c22] to-[#0e0e12]">
-            <span className="font-display font-bold text-[#ff7a1a] relative z-10 text-sm">HOJ</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+            ) : (
+              <span className="font-display font-bold text-[#ff7a1a] relative z-10 text-sm">HOJ</span>
+            )}
           </div>
           <div>
             <strong className="text-white text-sm block">Admin Panel</strong>
@@ -66,8 +75,12 @@ export default async function AdminLayout({
       {/* Mobile header for admin */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0c] border-b border-[rgba(255,255,255,0.08)] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg border border-[rgba(255,255,255,0.08)] flex items-center justify-center bg-gradient-to-br from-[#1c1c22] to-[#0e0e12]">
-            <span className="font-display font-bold text-[#ff7a1a] text-xs">HOJ</span>
+          <div className="w-8 h-8 rounded-lg border border-[rgba(255,255,255,0.08)] flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-[#1c1c22] to-[#0e0e12]">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+            ) : (
+              <span className="font-display font-bold text-[#ff7a1a] text-xs relative z-10">HOJ</span>
+            )}
           </div>
           <span className="text-white text-sm font-semibold">Admin</span>
         </div>

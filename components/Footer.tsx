@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 
-export default function Footer() {
+export default async function Footer() {
+  let logoUrl = null;
+  try {
+    const logoSetting = await prisma.setting.findUnique({ where: { key: "logo_url" } });
+    logoUrl = logoSetting?.value;
+  } catch (e) { }
+
   return (
     <>
       <footer className="py-8 text-[#b1b1ba] relative z-10">
@@ -11,8 +18,12 @@ export default function Footer() {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl border border-[rgba(255,255,255,0.08)] flex items-center justify-center bg-gradient-to-br from-[#1c1c22] to-[#0e0e12]">
-                  <span className="font-display font-bold text-[#ff7a1a] text-sm">HOJ</span>
+                <div className="w-10 h-10 rounded-xl border border-[rgba(255,255,255,0.08)] flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-[#1c1c22] to-[#0e0e12]">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                  ) : (
+                    <span className="font-display font-bold text-[#ff7a1a] text-sm relative z-10">HOJ</span>
+                  )}
                 </div>
                 <div>
                   <strong className="text-white text-sm block">House of Jesse</strong>

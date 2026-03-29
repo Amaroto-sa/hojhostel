@@ -8,8 +8,15 @@ import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const { data: session } = useSession();
   const pathname = usePathname();
+
+  useEffect(() => {
+    fetch("/api/settings").then(r => r.json()).then(data => {
+      if (data.logo_url) setLogoUrl(data.logo_url);
+    }).catch(() => { });
+  }, []);
 
   // On homepage, use anchor links; on other pages, link to /#section
   const isHome = pathname === "/";
@@ -22,8 +29,14 @@ export default function Navbar() {
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3">
             <div className="w-[50px] h-[50px] rounded-2xl border border-[rgba(255,255,255,0.08)] flex items-center justify-center relative overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.35)] bg-gradient-to-br from-[#1c1c22] to-[#0e0e12]">
-              <div className="absolute inset-0 bg-gradient-to-br from-[rgba(255,122,26,0.16)] to-transparent opacity-60"></div>
-              <span className="font-display font-bold text-[#ff7a1a] text-lg relative z-10">HOJ</span>
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+              ) : (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[rgba(255,122,26,0.16)] to-transparent opacity-60"></div>
+                  <span className="font-display font-bold text-[#ff7a1a] text-lg relative z-10">HOJ</span>
+                </>
+              )}
             </div>
             <div>
               <strong className="block text-base tracking-wide font-semibold text-[#f5f5f7]">HOJ Hostel</strong>

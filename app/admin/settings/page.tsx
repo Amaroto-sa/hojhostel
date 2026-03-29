@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save } from "lucide-react";
+import { Save, UploadCloud } from "lucide-react";
 
 const defaultSettings = [
   { key: "hostel_intro", label: "Hostel Introduction Text", type: "textarea" },
@@ -74,7 +74,40 @@ export default function AdminSettingsPage() {
         {defaultSettings.map((s) => (
           <div key={s.key}>
             <label className="block text-sm font-medium mb-2 text-gray-300">{s.label}</label>
-            {s.type === "textarea" ? (
+            {s.key === "logo_url" ? (
+              <div className="flex gap-4 items-center">
+                {settings[s.key] ? (
+                  <img src={settings[s.key]} alt="Logo" className="w-[60px] h-[60px] object-contain rounded-xl border border-[rgba(255,255,255,0.08)] bg-gradient-to-br from-[#1c1c22] to-[#0e0e12] p-1 shadow-lg" />
+                ) : (
+                  <div className="w-[60px] h-[60px] rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] flex items-center justify-center text-xs text-gray-500 shadow-md">No Logo</div>
+                )}
+                <label className="cursor-pointer px-5 py-2.5 rounded-full bg-white/5 border border-[rgba(255,255,255,0.08)] text-white hover:bg-white/10 transition text-sm font-medium shadow-[0_5px_15px_rgba(0,0,0,0.15)] flex items-center gap-2">
+                  <UploadCloud size={16} /> Update Logo
+                  <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    setSaving(true);
+                    const formData = new FormData();
+                    formData.append("file", file);
+
+                    try {
+                      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+                      if (uploadRes.ok) {
+                        const data = await uploadRes.json();
+                        setSettings({ ...settings, logo_url: data.url });
+                      } else {
+                        alert("Failed to upload to Cloudinary. Check credentials.");
+                      }
+                    } catch {
+                      alert("Upload failed.");
+                    } finally {
+                      setSaving(false);
+                    }
+                  }} disabled={saving} />
+                </label>
+              </div>
+            ) : s.type === "textarea" ? (
               <textarea
                 value={settings[s.key] || ""}
                 onChange={(e) => setSettings({ ...settings, [s.key]: e.target.value })}
@@ -94,7 +127,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Default Info */}
-      <div className="glass p-6 mt-6">
+      < div className="glass p-6 mt-6" >
         <h3 className="font-display text-lg mb-4 text-white">Default Contact Info</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="p-4 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]">
@@ -106,7 +139,7 @@ export default function AdminSettingsPage() {
             <span className="text-white font-medium">houseofjessehostel@gmail.com</span>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

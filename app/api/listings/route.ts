@@ -4,10 +4,13 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { listingSchema } from "@/lib/validations";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
+
     const listings = await prisma.listing.findMany({
-      where: { isPublished: true },
+      where: isAdmin ? undefined : { isPublished: true },
       include: { house: true },
       orderBy: { createdAt: "desc" },
     });

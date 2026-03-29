@@ -1,62 +1,51 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    if (!session || (session.user?.role !== "ADMIN" && session.user?.role !== "SUPER_ADMIN")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-
-    if (!cloudName) {
-      return NextResponse.json(
-        { error: "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME in .env" },
-        { status: 500 }
-      );
+    const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+      return NextResponse.json({ error: "Cloudinary credentials missing from env" }, { status: 500 });
     }
 
-    const formData = await request.formData();
+    const formData = await req.formData();
     const file = formData.get("file") as File;
-
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Forward to Cloudinary unsigned upload
-    const uploadData = new FormData();
-    uploadData.append("file", file);
-    uploadData.append("upload_preset", "hoj_hostel");
-    uploadData.append("folder", "hoj-hostel");
+    const timestamp = Math.round(new Date().getTime() / 1000).toString();
+    const signatureKey = `timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
+    const signature = crypto.createHash("sha1").update(signatureKey).digest("hex");
+
+    const cloudFormData = new FormData();
+    cloudFormData.append("file", file);
+    cloudFormData.append("timestamp", timestamp);
+    cloudFormData.append("api_key", CLOUDINARY_API_KEY);
+    cloudFormData.append("signature", signature);
 
     const cloudinaryRes = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      { method: "POST", body: uploadData }
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: "POST", body: cloudFormData }
     );
 
     if (!cloudinaryRes.ok) {
-      const errData = await cloudinaryRes.json();
-      return NextResponse.json(
-        { error: errData.error?.message || "Upload failed" },
-        { status: 500 }
-      );
+      const text = await cloudinaryRes.text();
+      console.error("Cloudinary error:", text);
+      return NextResponse.json({ error: "Cloudinary upload failed", details: text }, { status: 500 });
     }
 
-    const data = await cloudinaryRes.json();
+    const cloudData = await cloudinaryRes.json();
+    return NextResponse.json({ url: cloudData.secure_url });
 
-    return NextResponse.json({
-      url: data.secure_url,
-      publicId: data.public_id,
-      width: data.width,
-      height: data.height,
-    });
-  } catch (error: any) {
-    console.error("[Upload] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return NextResponse.json({ error: "Upload error", details: String(error) }, { status: 500 });
   }
 }

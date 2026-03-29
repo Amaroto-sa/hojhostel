@@ -10,6 +10,7 @@ const defaultSettings = [
   { key: "footer_text", label: "Footer Text", type: "text" },
   { key: "house_rules", label: "House Rules / Welcome Message", type: "textarea" },
   { key: "logo_url", label: "Logo URL (from Cloudinary)", type: "text" },
+  { key: "hero_image_url", label: "Homepage Hero Image", type: "text" },
 ];
 
 export default function AdminSettingsPage() {
@@ -74,15 +75,15 @@ export default function AdminSettingsPage() {
         {defaultSettings.map((s) => (
           <div key={s.key}>
             <label className="block text-sm font-medium mb-2 text-gray-300">{s.label}</label>
-            {s.key === "logo_url" ? (
+            {s.key === "logo_url" || s.key === "hero_image_url" ? (
               <div className="flex gap-4 items-center">
                 {settings[s.key] ? (
-                  <img src={settings[s.key]} alt="Logo" className="w-[60px] h-[60px] object-contain rounded-xl border border-[rgba(255,255,255,0.08)] bg-gradient-to-br from-[#1c1c22] to-[#0e0e12] p-1 shadow-lg" />
+                  <img src={settings[s.key]} alt="Upload preview" className="w-[60px] h-[60px] object-cover rounded-xl border border-[rgba(255,255,255,0.08)] bg-gradient-to-br from-[#1c1c22] to-[#0e0e12] p-1 shadow-lg" />
                 ) : (
-                  <div className="w-[60px] h-[60px] rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] flex items-center justify-center text-xs text-gray-500 shadow-md">No Logo</div>
+                  <div className="w-[60px] h-[60px] rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] flex items-center justify-center text-xs text-gray-500 shadow-md">None</div>
                 )}
                 <label className="cursor-pointer px-5 py-2.5 rounded-full bg-white/5 border border-[rgba(255,255,255,0.08)] text-white hover:bg-white/10 transition text-sm font-medium shadow-[0_5px_15px_rgba(0,0,0,0.15)] flex items-center gap-2">
-                  <UploadCloud size={16} /> Update Logo
+                  <UploadCloud size={16} /> Update Image
                   <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
@@ -95,7 +96,7 @@ export default function AdminSettingsPage() {
                       const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
                       if (uploadRes.ok) {
                         const data = await uploadRes.json();
-                        setSettings({ ...settings, logo_url: data.url });
+                        setSettings({ ...settings, [s.key]: data.url });
                       } else {
                         alert("Failed to upload to Cloudinary. Check credentials.");
                       }

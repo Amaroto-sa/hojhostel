@@ -29,6 +29,7 @@ export default async function Home() {
   const whatsapp = settingsMap["whatsapp_number"] || "+2348145416775";
   const whatsappLink = `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`;
   const globalIntro = settingsMap["hostel_intro"] || "House of Jesse Hostel isn't just a place to sleep — it's your comfortable, affordable, and conveniently located accommodation with flexible payment.";
+  const heroImageUrl = settingsMap["hero_image_url"] || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80";
 
   // Fallback data if DB is empty
   const displayListings = listings.length > 0 ? listings : [
@@ -79,7 +80,10 @@ export default async function Home() {
             </div>
           </div>
           <div className="glass p-[18px] flex flex-col gap-[14px]">
-            <div className="min-h-[350px] md:min-h-[430px] rounded-3xl overflow-hidden relative border border-white/10 bg-[url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center">
+            <div
+              className="min-h-[350px] md:min-h-[430px] rounded-3xl overflow-hidden relative border border-white/10 bg-cover bg-center"
+              style={{ backgroundImage: `url('${heroImageUrl}')` }}
+            >
               <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/60"></div>
               <div className="absolute bottom-[18px] left-[18px] right-[18px] p-5 rounded-2xl bg-gradient-to-b from-[#14141859] to-[#141418d1] backdrop-blur-md border border-white/10">
                 <strong className="text-lg block mb-1">Modern & Secure Layout</strong>

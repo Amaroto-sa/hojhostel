@@ -29,6 +29,8 @@ export const metadata: Metadata = {
   },
 };
 
+import SiteLayoutWrapper from "@/components/SiteLayoutWrapper";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,9 +50,9 @@ export default function RootLayout({
         style={{ fontFamily: "'Inter', sans-serif" }}
       >
         <Providers>
-          <Navbar />
-          <main className="relative z-10 min-h-screen">{children}</main>
-          <Footer />
+          <SiteLayoutWrapper>
+            {children}
+          </SiteLayoutWrapper>
         </Providers>
       </body>
     </html>

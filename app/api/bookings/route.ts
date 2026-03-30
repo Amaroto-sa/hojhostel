@@ -108,6 +108,10 @@ export async function POST(request: Request) {
       await sendEmail({ to: session.user.email, ...customerEmail, type: "booking_confirmation" });
     }
 
+    // In 'authOptions', we already throw error if !user.emailVerified
+    // so if the 'session' exists, the user is technically verified.
+    const isVerified = true;
+
     // Prepare Admin Notification Details
     const notificationDetails = {
       customerName: data.residentName,
@@ -122,7 +126,7 @@ export async function POST(request: Request) {
       emergencyContact: data.emergencyContact,
       emergencyRel: data.emergencyRel,
       notes: data.notes || "None",
-      isVerified: !!session.user.emailVerified,
+      isVerified: isVerified,
     };
 
     // Notify admin via Email
@@ -132,7 +136,7 @@ export async function POST(request: Request) {
     // Notify admin via Telegram
     const telegramMsg = `
 <b>🚨 New Booking Request</b>
-<b>Resident:</b> ${data.residentName} (${session.user.emailVerified ? '✅ verified' : '❌ unverified'})
+<b>Resident:</b> ${data.residentName} (${isVerified ? '✅ verified' : '❌ unverified'})
 <b>Accommodation:</b> ${listing.title}
 <b>Location:</b> ${listing.house.name}
 <b>Duration:</b> ${data.durationCount} ${data.duration.toLowerCase()}

@@ -1,9 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { MessageCircle, Instagram, Facebook, Twitter } from "lucide-react";
+import { MessageCircle, Instagram, Facebook } from "lucide-react";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+
+// TikTok SVG icon component (not in lucide-react)
+function TikTokIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.3 0 .59.04.86.12V9.01a6.16 6.16 0 0 0-.86-.06 6.29 6.29 0 0 0-6.29 6.29A6.29 6.29 0 0 0 9.49 21.5a6.29 6.29 0 0 0 6.29-6.29V8.86a8.28 8.28 0 0 0 3.81.94V6.69Z" />
+    </svg>
+  );
+}
 
 export default function Footer() {
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -56,9 +65,9 @@ export default function Footer() {
                     <Facebook size={18} strokeWidth={2.5} />
                   </Link>
                 )}
-                {settings.social_twitter && (
-                  <Link href={settings.social_twitter} target="_blank" className="w-10 h-10 rounded-xl bg-[#1DA1F2]/10 text-[#1DA1F2] flex items-center justify-center hover:bg-[#1DA1F2]/20 transition-all border border-[#1DA1F2]/20 shadow-[0_5px_15px_rgba(29,161,242,0.1)]">
-                    <Twitter size={18} strokeWidth={2.5} />
+                {settings.social_tiktok && (
+                  <Link href={settings.social_tiktok} target="_blank" className="w-10 h-10 rounded-xl bg-[#00f2ea]/10 text-[#00f2ea] flex items-center justify-center hover:bg-[#00f2ea]/20 transition-all border border-[#00f2ea]/20 shadow-[0_5px_15px_rgba(0,242,234,0.1)]">
+                    <TikTokIcon size={18} />
                   </Link>
                 )}
               </div>

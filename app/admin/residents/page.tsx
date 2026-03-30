@@ -1,11 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock } from "lucide-react";
+import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw } from "lucide-react";
 
 export default function AdminResidentsPage() {
   const [residents, setResidents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Renew modal state
+  const [renewModal, setRenewModal] = useState<{ open: boolean; resident: any | null }>({ open: false, resident: null });
+  const [renewForm, setRenewForm] = useState({ extensionDuration: "WEEKLY", extensionCount: 1 });
+  const [renewing, setRenewing] = useState(false);
 
   useEffect(() => { fetchResidents(); }, []);
 
@@ -22,6 +27,47 @@ export default function AdminResidentsPage() {
       body: JSON.stringify({ status }),
     });
     fetchResidents();
+  }
+
+  function openRenewModal(resident: any) {
+    setRenewForm({ extensionDuration: resident.duration, extensionCount: 1 });
+    setRenewModal({ open: true, resident });
+  }
+
+  async function handleRenew() {
+    if (!renewModal.resident) return;
+    setRenewing(true);
+
+    try {
+      await fetch(`/api/residents/${renewModal.resident.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "RENEW",
+          extensionDuration: renewForm.extensionDuration,
+          extensionCount: Number(renewForm.extensionCount),
+        }),
+      });
+      setRenewModal({ open: false, resident: null });
+      fetchResidents();
+    } catch {
+      alert("Failed to renew. Please try again.");
+    }
+    setRenewing(false);
+  }
+
+  // Calculate new due date preview
+  function previewNewDueDate() {
+    if (!renewModal.resident) return "";
+    const current = new Date(renewModal.resident.dueDate);
+    const count = Number(renewForm.extensionCount) || 1;
+    const newDue = new Date(current);
+    switch (renewForm.extensionDuration) {
+      case "DAILY": newDue.setDate(newDue.getDate() + count); break;
+      case "WEEKLY": newDue.setDate(newDue.getDate() + count * 7); break;
+      case "MONTHLY": newDue.setMonth(newDue.getMonth() + count); break;
+    }
+    return newDue.toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
   }
 
   const isOverdue = (date: string) => new Date() > new Date(date);
@@ -54,9 +100,15 @@ export default function AdminResidentsPage() {
             {residents.filter(r => r.status === "ACTIVE" && (isOverdue(r.dueDate) || isDueSoon(r.dueDate))).map((r: any) => (
               <div key={r.id} className="flex items-center justify-between text-sm p-3 rounded-xl bg-[rgba(0,0,0,0.2)]">
                 <span className="text-white font-medium">{r.name} — {r.listing?.title}</span>
-                <span className={isOverdue(r.dueDate) ? "text-red-400 font-bold" : "text-yellow-400"}>
-                  Due: {new Date(r.dueDate).toLocaleDateString()} {isOverdue(r.dueDate) ? "(OVERDUE)" : "(Due Soon)"}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className={isOverdue(r.dueDate) ? "text-red-400 font-bold" : "text-yellow-400"}>
+                    Due: {new Date(r.dueDate).toLocaleDateString()} {isOverdue(r.dueDate) ? "(OVERDUE)" : "(Due Soon)"}
+                  </span>
+                  <button onClick={() => openRenewModal(r)}
+                    className="px-3 py-1 rounded-lg bg-green-500/10 text-green-400 font-medium text-xs hover:bg-green-500/20 transition flex items-center gap-1">
+                    <RefreshCw size={12} /> Renew
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -86,13 +138,19 @@ export default function AdminResidentsPage() {
                 <tr key={r.id} className="border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.02)]">
                   <td className="py-4 px-5">
                     <span className="font-medium text-white block">{r.name}</span>
-                    <span className="text-xs text-gray-500">{r.phone} · {r.emergencyContact} ({r.emergencyRel})</span>
+                    <span className="text-xs text-gray-500">{r.phone} {r.email ? `· ${r.email}` : ''}</span>
+                    <br />
+                    <span className="text-xs text-gray-600">{r.emergencyContact} ({r.emergencyRel})</span>
                   </td>
                   <td className="py-4 px-5 text-[#b1b1ba]">{r.listing?.house?.name} — {r.listing?.title}</td>
                   <td className="py-4 px-5 text-[#b1b1ba]">{new Date(r.checkInDate).toLocaleDateString()}</td>
                   <td className="py-4 px-5">
                     <span className={`font-medium ${isOverdue(r.dueDate) ? 'text-red-400' : isDueSoon(r.dueDate) ? 'text-yellow-400' : 'text-white'}`}>
                       {new Date(r.dueDate).toLocaleDateString()}
+                    </span>
+                    <br />
+                    <span className="text-xs text-gray-600">
+                      {r.durationCount} {r.duration === "DAILY" ? "day" : r.duration === "WEEKLY" ? "week" : "month"}{r.durationCount > 1 ? "s" : ""}
                     </span>
                   </td>
                   <td className="py-4 px-5">
@@ -101,9 +159,9 @@ export default function AdminResidentsPage() {
                   <td className="py-4 px-5 text-right">
                     {r.status === "ACTIVE" && (
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => updateStatus(r.id, "RENEW")} title="Renew / Extend Stay (+1 duration)"
+                        <button onClick={() => openRenewModal(r)} title="Renew / Extend Stay"
                           className="px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 font-medium text-xs hover:bg-green-500/20 transition flex items-center gap-1">
-                          <CheckCircle size={14} /> Renew Action
+                          <RefreshCw size={14} /> Renew
                         </button>
                         <button onClick={() => updateStatus(r.id, "MOVED_OUT")} title="Mark moved out"
                           className="p-2 rounded-lg hover:bg-blue-500/10"><MoveOut size={16} className="text-blue-400" /></button>
@@ -116,6 +174,74 @@ export default function AdminResidentsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* ── RENEW MODAL ── */}
+      {renewModal.open && renewModal.resident && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#14141a] border border-[rgba(255,255,255,0.1)] rounded-2xl shadow-2xl w-full max-w-md p-6 md:p-8 relative">
+            <button onClick={() => setRenewModal({ open: false, resident: null })}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition"><X size={20} /></button>
+
+            <h2 className="font-display text-2xl text-white mb-1">Extend Stay</h2>
+            <p className="text-[#b1b1ba] text-sm mb-6">Renew stay for <strong className="text-white">{renewModal.resident.name}</strong></p>
+
+            {/* Current info */}
+            <div className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 mb-6 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Accommodation</span>
+                <span className="text-white font-medium">{renewModal.resident.listing?.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Current Due Date</span>
+                <span className={`font-medium ${isOverdue(renewModal.resident.dueDate) ? 'text-red-400' : 'text-white'}`}>
+                  {new Date(renewModal.resident.dueDate).toLocaleDateString()}
+                  {isOverdue(renewModal.resident.dueDate) && " (OVERDUE)"}
+                </span>
+              </div>
+            </div>
+
+            {/* Extension form */}
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-300">Extension Duration</label>
+                <select value={renewForm.extensionDuration}
+                  onChange={(e) => setRenewForm({ ...renewForm, extensionDuration: e.target.value })}
+                  className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors">
+                  <option value="DAILY" className="bg-[#0a0a0c]">Daily</option>
+                  <option value="WEEKLY" className="bg-[#0a0a0c]">Weekly</option>
+                  <option value="MONTHLY" className="bg-[#0a0a0c]">Monthly</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-300">
+                  Number of {renewForm.extensionDuration === "DAILY" ? "Days" : renewForm.extensionDuration === "WEEKLY" ? "Weeks" : "Months"}
+                </label>
+                <input type="number" min="1" value={renewForm.extensionCount}
+                  onChange={(e) => setRenewForm({ ...renewForm, extensionCount: Math.max(1, parseInt(e.target.value) || 1) })}
+                  className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors" />
+              </div>
+            </div>
+
+            {/* New due date preview */}
+            <div className="bg-[rgba(255,122,26,0.08)] border border-[rgba(255,122,26,0.15)] rounded-xl p-4 mb-6 flex items-center justify-between">
+              <span className="text-sm text-[#ffd2b0] font-medium">New Due Date</span>
+              <span className="text-[#ff7a1a] font-bold text-lg">{previewNewDueDate()}</span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button onClick={() => setRenewModal({ open: false, resident: null })}
+                className="flex-1 py-3 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white font-medium text-sm hover:bg-[rgba(255,255,255,0.08)] transition">
+                Cancel
+              </button>
+              <button onClick={handleRenew} disabled={renewing}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-sm disabled:opacity-50 shadow-[0_10px_30px_rgba(255,122,26,0.25)] hover:scale-[1.01] transition-transform flex items-center justify-center gap-2">
+                <CheckCircle size={16} /> {renewing ? "Extending..." : "Confirm Extension"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

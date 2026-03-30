@@ -11,7 +11,7 @@ const defaultSettings = [
   { key: "contact_email", label: "Contact Email", type: "text" },
   { key: "social_instagram", label: "Instagram Link", type: "text" },
   { key: "social_facebook", label: "Facebook Link", type: "text" },
-  { key: "social_twitter", label: "Twitter/X Link", type: "text" },
+  { key: "social_tiktok", label: "TikTok Link", type: "text" },
   { key: "footer_text", label: "Footer Text", type: "text" },
   { key: "house_rules", label: "House Rules / Welcome Message", type: "textarea" },
   { key: "logo_url", label: "Logo URL (from Cloudinary)", type: "text" },

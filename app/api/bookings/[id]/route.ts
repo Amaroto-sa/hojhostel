@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendEmail, bookingStatusEmail, welcomeEmail } from "@/lib/email";
+import { sendEmail, bookingStatusEmail, welcomeEmail, sendTelegramNotification } from "@/lib/email";
 import { calculateDueDate } from "@/lib/due-date";
 
 export async function PATCH(
@@ -36,6 +36,9 @@ export async function PATCH(
       data: { status },
     });
 
+    // Determine client email: residentEmail from booking form > user account email
+    const clientEmail = booking.residentEmail || booking.user?.email || null;
+
     // If approved, create resident record and update occupancy
     if (status === "APPROVED") {
       const dueDate = calculateDueDate(
@@ -58,7 +61,7 @@ export async function PATCH(
         }
       }
 
-      // Create resident
+      // Create resident record with email
       await prisma.resident.create({
         data: {
           customerProfileId: profile?.id,
@@ -66,6 +69,7 @@ export async function PATCH(
           listingId: booking.listingId,
           name: booking.residentName,
           phone: booking.residentPhone,
+          email: booking.residentEmail || booking.user?.email || null,
           address: booking.residentAddress,
           emergencyContact: booking.emergencyContact,
           emergencyRel: booking.emergencyRel,
@@ -87,21 +91,32 @@ export async function PATCH(
         },
       });
 
-      // Send welcome email if user exists
-      if (booking.user?.email) {
-        // Get house rules from settings
+      // Send welcome email with house rules to client
+      if (clientEmail) {
         const houseRulesSetting = await prisma.setting.findUnique({
           where: { key: "house_rules" },
         });
         const welcomeData = welcomeEmail(booking.residentName, houseRulesSetting?.value || "");
-        await sendEmail({ to: booking.user.email, ...welcomeData, type: "welcome" });
+        await sendEmail({ to: clientEmail, ...welcomeData, type: "welcome" });
       }
+
+      // Notify admin via Telegram (optional)
+      await sendTelegramNotification(
+        `✅ <b>Booking Approved</b>\n<b>Resident:</b> ${booking.residentName}\n<b>Accommodation:</b> ${booking.listing.title}\n<b>Due Date:</b> ${dueDate.toDateString()}`
+      );
     }
 
-    // Send status update email if user exists
-    if (booking.user?.email) {
+    // Send status update email to client
+    if (clientEmail) {
       const statusEmailData = bookingStatusEmail(booking.residentName, status);
-      await sendEmail({ to: booking.user.email, ...statusEmailData, type: "booking_status" });
+      await sendEmail({ to: clientEmail, ...statusEmailData, type: "booking_status" });
+    }
+
+    // Notify admin via Telegram for rejections too (optional)
+    if (status === "REJECTED") {
+      await sendTelegramNotification(
+        `❌ <b>Booking Rejected</b>\n<b>Resident:</b> ${booking.residentName}\n<b>Accommodation:</b> ${booking.listing.title}`
+      );
     }
 
     return NextResponse.json(updated);

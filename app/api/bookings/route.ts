@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { bookingSchema } from "@/lib/validations";
 import { calculateDueDate } from "@/lib/due-date";
-import { sendEmail, bookingSubmisionEmail, adminBookingNotificationEmail } from "@/lib/email";
+import { sendEmail, bookingSubmisionEmail, adminBookingNotificationEmail, sendTelegramNotification } from "@/lib/email";
 
 export async function GET(request: Request) {
   try {
@@ -98,6 +98,7 @@ export async function POST(request: Request) {
         durationCount: data.durationCount,
         residentName: data.residentName,
         residentPhone: data.residentPhone,
+        residentEmail: data.residentEmail || null,
         residentAddress: data.residentAddress || null,
         emergencyContact: data.emergencyContact,
         emergencyRel: data.emergencyRel,
@@ -107,20 +108,22 @@ export async function POST(request: Request) {
       },
     });
 
-    // Send confirmation emails
-    const customerEmail = bookingSubmisionEmail(data.residentName, listing.title);
-    if (session?.user?.email) {
-      await sendEmail({ to: session.user.email, ...customerEmail, type: "booking_confirmation" });
+    // Determine the best email to reach the client
+    // Priority: residentEmail from form > session user email
+    const clientEmail = data.residentEmail || session?.user?.email || null;
+
+    // Send booking confirmation email to client
+    if (clientEmail) {
+      const customerEmailData = bookingSubmisionEmail(data.residentName, listing.title);
+      await sendEmail({ to: clientEmail, ...customerEmailData, type: "booking_confirmation" });
     }
 
-    // In 'authOptions', we already throw error if !user.emailVerified
-    // so if the 'session' exists, the user is technically verified.
     const isVerified = !!session?.user;
 
     // Prepare Admin Notification Details
     const notificationDetails = {
       customerName: data.residentName,
-      customerEmail: session?.user?.email,
+      customerEmail: clientEmail || "Not provided",
       listingTitle: listing.title,
       houseName: listing.house.name,
       checkInDate: data.checkInDate,
@@ -138,10 +141,11 @@ export async function POST(request: Request) {
     const adminEmail = adminBookingNotificationEmail(notificationDetails);
     await sendEmail({ to: "houseofjessehostel@gmail.com", ...adminEmail, type: "admin_notification" });
 
-    // Notify admin via Telegram
+    // Notify admin via Telegram (optional, admin-only alerts)
     const telegramMsg = `
 <b>🚨 New Booking Request</b>
 <b>Resident:</b> ${data.residentName} (${isVerified ? '✅ verified' : '❌ unverified'})
+<b>Email:</b> ${clientEmail || 'Not provided'}
 <b>Accommodation:</b> ${listing.title}
 <b>Location:</b> ${listing.house.name}
 <b>Duration:</b> ${data.durationCount} ${data.duration.toLowerCase()}
@@ -151,7 +155,6 @@ export async function POST(request: Request) {
 <a href="${process.env.NEXTAUTH_URL || 'https://hojhostel.vercel.app'}/admin/bookings">View in Admin Panel</a>
     `.trim();
 
-    const { sendTelegramNotification } = await import("@/lib/email");
     await sendTelegramNotification(telegramMsg);
 
     return NextResponse.json(booking, { status: 201 });

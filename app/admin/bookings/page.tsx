@@ -63,7 +63,7 @@ export default function AdminBookingsPage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <div>
                   <h3 className="font-bold text-lg text-white">{booking.residentName}</h3>
-                  <p className="text-sm text-[#b1b1ba]">{booking.user?.email} · {booking.residentPhone}</p>
+                  <p className="text-sm text-[#b1b1ba]">{booking.residentEmail || booking.user?.email || 'No email'} · {booking.residentPhone}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColors[booking.status]}`}>
                   {booking.status}

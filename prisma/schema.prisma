@@ -127,6 +127,7 @@ model Booking {
 
   residentName    String
   residentPhone   String
+  residentEmail   String?
   residentAddress String?
   emergencyContact String
   emergencyRel    String

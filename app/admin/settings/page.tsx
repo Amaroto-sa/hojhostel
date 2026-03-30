@@ -14,6 +14,9 @@ const defaultSettings = [
   { key: "social_tiktok", label: "TikTok Link", type: "text" },
   { key: "footer_text", label: "Footer Text", type: "text" },
   { key: "house_rules", label: "House Rules / Welcome Message", type: "textarea" },
+  { key: "email_booking_received", label: "Email: Booking Received Text", type: "textarea" },
+  { key: "email_booking_approved", label: "Email: Booking Approved Text", type: "textarea" },
+  { key: "email_booking_rejected", label: "Email: Booking Rejected Text", type: "textarea" },
   { key: "logo_url", label: "Logo URL (from Cloudinary)", type: "text" },
   { key: "hero_image_url", label: "Homepage Hero Image", type: "text" },
 ];

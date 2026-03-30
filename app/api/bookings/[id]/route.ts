@@ -108,7 +108,14 @@ export async function PATCH(
 
     // Send status update email to client
     if (clientEmail) {
-      const statusEmailData = bookingStatusEmail(booking.residentName, status);
+      const settingKey = status === "APPROVED" ? "email_booking_approved" : status === "REJECTED" ? "email_booking_rejected" : null;
+      let customText = null;
+      if (settingKey) {
+        const s = await prisma.setting.findUnique({ where: { key: settingKey } });
+        customText = s?.value;
+      }
+
+      const statusEmailData = bookingStatusEmail(booking.residentName, status, customText || undefined);
       await sendEmail({ to: clientEmail, ...statusEmailData, type: "booking_status" });
     }
 

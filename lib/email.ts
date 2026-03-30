@@ -42,7 +42,11 @@ export async function sendEmail({ to, subject, html, type = "general", replyTo }
 
 
 // Pre-built email templates
-export function bookingSubmisionEmail(customerName: string, listingTitle: string) {
+export function bookingSubmisionEmail(customerName: string, listingTitle: string, customText?: string) {
+  const messageHtml = customText
+    ? customText.replace(/\n/g, '<br />')
+    : "Our team will review your request. You will receive an email once it is approved or if more information is needed.";
+
   return {
     subject: "Booking Request Received - HOJ Hostel",
     html: `
@@ -52,7 +56,7 @@ export function bookingSubmisionEmail(customerName: string, listingTitle: string
         <p style="font-size:16px;line-height:1.6;">Your booking request for <strong>${listingTitle}</strong> has been received by House of Jesse Hostel.</p>
         <div style="background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin:24px 0;">
           <p style="margin:0;font-size:14px;color:#b1b1ba;">Next Steps:</p>
-          <p style="margin:8px 0 0;font-size:15px;color:#ececf0;">Our team will review your request. You will receive an email once it is approved or if more information is needed.</p>
+          <p style="margin:8px 0 0;font-size:15px;color:#ececf0;line-height:1.6;">${messageHtml}</p>
         </div>
         <p style="font-size:14px;color:#b1b1ba;">If you have any urgent questions, reach out via WhatsApp:</p>
         <div style="margin:16px 0;">
@@ -142,15 +146,23 @@ export async function sendTelegramNotification(message: string) {
   }
 }
 
-export function bookingStatusEmail(customerName: string, status: string) {
+export function bookingStatusEmail(customerName: string, status: string, customText?: string) {
+  const defaultText = status === "APPROVED"
+    ? "<p>You will receive a welcome email with house rules and check-in details shortly.</p>"
+    : "";
+
+  const messageHtml = customText
+    ? `<p style="line-height:1.6;margin:15px 0;">${customText.replace(/\n/g, '<br />')}</p>`
+    : defaultText;
+
   return {
     subject: `Booking ${status} - HOJ Hostel`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0a0a0c;color:#f5f5f7;border-radius:16px;">
         <h1 style="color:#ff7a1a;">Booking Update</h1>
         <p>Hi ${customerName},</p>
-        <p>Your booking has been <strong>${status.toLowerCase()}</strong>.</p>
-        ${status === "APPROVED" ? "<p>You will receive a welcome email with house rules and check-in details shortly.</p>" : ""}
+        <p>Your booking has been <strong style="color:#ff7a1a;">${status.toLowerCase()}</strong>.</p>
+        ${messageHtml}
         <p>Contact us on WhatsApp: <a href='https://wa.me/2348145416775' style='color:#ff7a1a;'>+234 814 541 6775</a></p>
         <hr style="border-color:rgba(255,255,255,0.1);margin:20px 0;" />
         <p style="color:#b1b1ba;font-size:13px;">House of Jesse / HOJ Hostel</p>

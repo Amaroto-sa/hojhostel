@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Home, Calendar, Settings, LogOut, MessageSquare, Star, ImageIcon } from "lucide-react";
+import { LayoutDashboard, Users, Home, Calendar, Settings, LogOut, MessageSquare, Star, ImageIcon, UserCircle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminLayout({
@@ -21,6 +21,7 @@ export default async function AdminLayout({
 
   const navItems = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/users", label: "User Accounts", icon: UserCircle },
     { href: "/admin/listings", label: "Listings & Houses", icon: Home },
     { href: "/admin/bookings", label: "Bookings", icon: Calendar },
     { href: "/admin/residents", label: "Residents", icon: Users },

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, Users, Home, Calendar, Settings,
-    LogOut, Star, ImageIcon, UserCircle, Menu, X, AlertCircle, Mail
+    LogOut, Star, ImageIcon, UserCircle, Menu, X, AlertCircle, Mail, ShieldCheck
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -33,6 +33,7 @@ export default function AdminSidebar({ session, logoUrl }: AdminSidebarProps) {
         { href: "/admin/testimonials", label: "Testimonials", icon: Star },
         { href: "/admin/gallery", label: "Gallery", icon: ImageIcon },
         { href: "/admin/settings", label: "Settings", icon: Settings },
+        { href: "/admin/security", label: "Security", icon: ShieldCheck },
     ];
 
     const adminName = session?.user?.name || session?.user?.email || "Admin";

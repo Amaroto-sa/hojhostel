@@ -1,5 +1,7 @@
-// Email utility - provider-ready pattern using environment variables
-// No SMTP secrets are hardcoded. Configure via .env
+// Email utility — real nodemailer implementation using SMTP env variables
+// No SMTP secrets are hardcoded. Configure via Vercel environment variables.
+
+import nodemailer from "nodemailer";
 
 interface EmailOptions {
   to: string;
@@ -13,31 +15,30 @@ export async function sendEmail({ to, subject, html, type = "general" }: EmailOp
   const port = process.env.SMTP_PORT;
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASSWORD;
-  const from = process.env.EMAIL_FROM || "HOJ Hostel <noreply@hojhostel.com>";
+  const from = process.env.EMAIL_FROM || `HOJ Hostel <${user}>`;
 
   if (!host || !user || !pass) {
-    console.warn("[Email] SMTP not configured. Skipping email send.");
+    console.warn("[Email] SMTP not configured. Skipping email send. Type:", type);
     return { success: false, error: "SMTP not configured" };
   }
 
   try {
-    // In production, use nodemailer or a transactional email provider
-    // This is the integration-ready pattern:
-    //
-    // const nodemailer = require("nodemailer");
-    // const transporter = nodemailer.createTransport({
-    //   host, port: Number(port), secure: Number(port) === 465,
-    //   auth: { user, pass }
-    // });
-    // await transporter.sendMail({ from, to, subject, html });
+    const transporter = nodemailer.createTransport({
+      host,
+      port: Number(port) || 587,
+      secure: Number(port) === 465,
+      auth: { user, pass },
+    });
 
-    console.log(`[Email] Would send "${subject}" to ${to}`);
+    await transporter.sendMail({ from, to, subject, html });
+    console.log(`[Email] Sent "${subject}" to ${to}`);
     return { success: true };
   } catch (error: any) {
-    console.error("[Email] Failed:", error.message);
+    console.error("[Email] Failed to send:", error.message);
     return { success: false, error: error.message };
   }
 }
+
 
 // Pre-built email templates
 export function bookingSubmisionEmail(customerName: string, listingTitle: string) {

@@ -89,7 +89,7 @@ export default function AdminSettingsPage() {
                 )}
                 <label className="cursor-pointer px-5 py-2.5 rounded-full bg-white/5 border border-[rgba(255,255,255,0.08)] text-white hover:bg-white/10 transition text-sm font-medium shadow-[0_5px_15px_rgba(0,0,0,0.15)] flex items-center gap-2">
                   <UploadCloud size={16} /> Update Image
-                  <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                  <input type="file" className="hidden" accept="image/*" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
 
@@ -116,7 +116,7 @@ export default function AdminSettingsPage() {
             ) : s.type === "textarea" ? (
               <textarea
                 value={settings[s.key] || ""}
-                onChange={(e) => setSettings({ ...settings, [s.key]: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setSettings({ ...settings, [s.key]: e.target.value })}
                 rows={4}
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors resize-none"
               />
@@ -125,7 +125,7 @@ export default function AdminSettingsPage() {
                 <input
                   type="checkbox"
                   checked={settings[s.key] === "true"}
-                  onChange={(e) => setSettings({ ...settings, [s.key]: e.target.checked ? "true" : "false" })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings({ ...settings, [s.key]: e.target.checked ? "true" : "false" })}
                   className="w-5 h-5 rounded border-white/10 bg-white/5 text-[#ff7a1a] focus:ring-[#ff7a1a]"
                 />
                 <span className="text-sm text-[#b1b1ba]">Enabled</span>

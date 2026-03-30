@@ -44,21 +44,24 @@ export async function PATCH(
         booking.durationCount
       );
 
-      // Get or create customer profile
-      let profile = await prisma.customerProfile.findUnique({
-        where: { userId: booking.userId },
-      });
-
-      if (!profile) {
-        profile = await prisma.customerProfile.create({
-          data: { userId: booking.userId },
+      // Get or create customer profile if user exists
+      let profile = null;
+      if (booking.userId) {
+        profile = await prisma.customerProfile.findUnique({
+          where: { userId: booking.userId },
         });
+
+        if (!profile) {
+          profile = await prisma.customerProfile.create({
+            data: { userId: booking.userId },
+          });
+        }
       }
 
       // Create resident
       await prisma.resident.create({
         data: {
-          customerProfileId: profile.id,
+          customerProfileId: profile?.id,
           bookingId: booking.id,
           listingId: booking.listingId,
           name: booking.residentName,
@@ -79,8 +82,8 @@ export async function PATCH(
         where: { id: booking.listingId },
         data: {
           occupied: { increment: 1 },
-          status: booking.listing.occupied + 1 >= booking.listing.capacity ? "OCCUPIED" : 
-                  booking.listing.occupied + 1 > 0 ? "LIMITED" : "AVAILABLE",
+          status: booking.listing.occupied + 1 >= booking.listing.capacity ? "OCCUPIED" :
+            booking.listing.occupied + 1 > 0 ? "LIMITED" : "AVAILABLE",
         },
       });
 

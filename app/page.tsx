@@ -20,7 +20,7 @@ export default async function Home() {
     const settings = await prisma.setting.findMany();
     settings.forEach((s) => { settingsMap[s.key] = s.value; });
 
-    galleryImages = await prisma.galleryImage.findMany({ orderBy: { createdAt: "desc" } });
+    galleryImages = await prisma.galleryImage.findMany({ include: { house: true }, orderBy: { createdAt: "desc" } });
   } catch (e) {
     // Database might not be connected yet (build time)
   }
@@ -207,11 +207,13 @@ export default async function Home() {
               <h3 className="font-display text-2xl mb-3">{house.name}</h3>
               <p className="text-[#b1b1ba] text-sm mb-1">📍 {house.location}</p>
               <p className="text-[#b1b1ba] leading-relaxed mt-3 mb-6">{house.description}</p>
-              {idx === 0 ? (
-                <Link href="/availability" className="inline-flex items-center text-[#ff7a1a] font-bold hover:text-[#ff9f5a] transition">Check Availability →</Link>
-              ) : (
-                <div className="inline-flex px-3 py-1 bg-white/5 border border-white/10 rounded-full text-sm font-semibold text-gray-300">More updates coming soon</div>
-              )}
+              <div className="flex gap-4 items-center">
+                {idx === 0 ? (
+                  <Link href="/availability" className="inline-flex items-center text-[#ff7a1a] font-bold hover:text-[#ff9f5a] transition">Check Availability →</Link>
+                ) : (
+                  <Link href="#gallery" className="inline-flex items-center text-[#b1b1ba] font-bold hover:text-white transition">View Gallery →</Link>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -221,75 +223,62 @@ export default async function Home() {
       <section className="py-10" id="gallery">
         <div className="mb-8">
           <h2 className="font-display text-3xl md:text-4xl tracking-tight mb-2">Gallery</h2>
-          <p className="text-[#b1b1ba] max-w-2xl">A glimpse into the HOJ Hostel living experience.</p>
+          <p className="text-[#b1b1ba] max-w-2xl">A glimpse into the HOJ Hostel living experience across our properties.</p>
         </div>
 
-        {(() => {
-          const hoj1Images = galleryImages.filter(img => img.houseId === displayHouses[0]?.id);
-          const hoj2Images = galleryImages.filter(img => img.houseId === displayHouses[1]?.id);
-          const otherImages = galleryImages.filter(img => img.houseId !== displayHouses[0]?.id && img.houseId !== displayHouses[1]?.id);
+        <div className="flex flex-col gap-12">
+          {displayHouses.map((house: any) => {
+            const houseImages = galleryImages.filter(img => img.houseId === house.id);
 
-          return (
-            <>
-              <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-5 mb-8">
-                {/* HOJ 1 Big Primary Image */}
-                <div className={`rounded-3xl overflow-hidden relative border border-white/10 min-h-[400px] bg-cover bg-center shadow-[0_25px_70px_rgba(0,0,0,0.35)]`} style={{ backgroundImage: `url('${hoj1Images[0]?.url || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80"}')` }}>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                  <div className="absolute bottom-5 left-5 right-5 p-4 rounded-2xl bg-gradient-to-b from-[#12121640] to-[#121216d6] backdrop-blur-sm border border-white/10">
-                    <strong className="block mb-1">{displayHouses[0]?.name || "HOJ 1 — Golden Rays Estate"}</strong>
-                    <span className="text-gray-300 text-sm">{hoj1Images[0]?.caption || "Clean, spacious, and welcoming accommodation spaces."}</span>
+            return (
+              <div key={house.id || house.name}>
+                <h3 className="font-display text-2xl mb-4 text-[#e9e9ec] border-b border-white/10 pb-2">{house.name}</h3>
+
+                {houseImages.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {houseImages.map((img: any) => (
+                      <div key={img.id} className="rounded-2xl overflow-hidden border border-white/10 relative shadow-[0_15px_30px_rgba(0,0,0,0.3)] aspect-[4/3] group">
+                        <img src={img.url} alt="Gallery item" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        {img.caption && (
+                          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                            <span className="text-white text-sm font-medium">{img.caption}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
-
-                <div className="grid gap-5">
-                  {/* HOJ 1 Secondary Image */}
-                  <div className={`rounded-3xl overflow-hidden relative border border-white/10 min-h-[190px] bg-cover bg-center shadow-[0_25px_70px_rgba(0,0,0,0.35)]`} style={{ backgroundImage: `url('${hoj1Images[1]?.url || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1000&q=80"}')` }}>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div className="absolute bottom-4 left-4 right-4 p-3 rounded-xl bg-[#121216a0] backdrop-blur-sm border border-white/10">
-                      <strong className="text-sm block">Comfortable Room Setup</strong>
-                      <span className="text-gray-400 text-xs">{hoj1Images[1]?.caption || "Built for rest and productivity."}</span>
+                ) : (
+                  <div className="rounded-3xl overflow-hidden relative border border-white/10 min-h-[220px] bg-gradient-to-br from-[#1a1a20] to-[#0e0e12] flex items-center justify-center shadow-[0_25px_70px_rgba(0,0,0,0.35)]">
+                    <div className="text-center px-6">
+                      <div className="w-14 h-14 mx-auto rounded-2xl bg-[rgba(255,122,26,0.12)] border border-[rgba(255,122,26,0.15)] flex items-center justify-center text-2xl mb-3">🏗️</div>
+                      <p className="font-bold text-sm mb-1">{house.name} Photos</p>
+                      <p className="text-xs text-[#b1b1ba]">More pictures coming soon</p>
                     </div>
                   </div>
+                )}
+              </div>
+            );
+          })}
 
-                  {/* HOJ 2 Image */}
-                  <div className={`rounded-3xl overflow-hidden relative border border-white/10 min-h-[190px] ${hoj2Images[0] ? 'bg-cover bg-center' : 'bg-gradient-to-br from-[#1a1a20] to-[#0e0e12] flex items-center justify-center'} shadow-[0_25px_70px_rgba(0,0,0,0.35)]`} style={hoj2Images[0] ? { backgroundImage: `url('${hoj2Images[0].url}')` } : {}}>
-                    {hoj2Images[0] ? (
-                      <>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                        <div className="absolute bottom-4 left-4 right-4 p-3 rounded-xl bg-[#121216a0] backdrop-blur-sm border border-white/10">
-                          <strong className="text-sm block">{displayHouses[1]?.name || "HOJ 2"}</strong>
-                          <span className="text-gray-400 text-xs">{hoj2Images[0].caption || "Premium comfortable layout."}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center px-6">
-                        <div className="w-14 h-14 mx-auto rounded-2xl bg-[rgba(255,122,26,0.12)] border border-[rgba(255,122,26,0.15)] flex items-center justify-center text-2xl mb-3">🏗️</div>
-                        <p className="font-bold text-sm mb-1">{displayHouses[1]?.name || "HOJ 2 Gallery"}</p>
-                        <p className="text-xs text-[#b1b1ba]">More pictures coming soon</p>
+          {/* General Gallery for Unassigned Images */}
+          {galleryImages.filter(img => !img.houseId).length > 0 && (
+            <div>
+              <h3 className="font-display text-2xl mb-4 text-[#e9e9ec] border-b border-white/10 pb-2">General Gallery</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {galleryImages.filter(img => !img.houseId).map((img: any) => (
+                  <div key={img.id} className="rounded-2xl overflow-hidden border border-white/10 relative shadow-[0_15px_30px_rgba(0,0,0,0.3)] aspect-[4/3] group">
+                    <img src={img.url} alt="Gallery item" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    {img.caption && (
+                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                        <span className="text-white text-sm font-medium">{img.caption}</span>
                       </div>
                     )}
                   </div>
-                </div>
+                ))}
               </div>
-
-              {/* Render any additional images left over in a standard grid */}
-              {(otherImages.length > 0 || hoj1Images.length > 2 || hoj2Images.length > 1) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-                  {[...hoj1Images.slice(2), ...hoj2Images.slice(1), ...otherImages].map((img) => (
-                    <div key={img.id} className="rounded-2xl overflow-hidden border border-white/10 relative shadow-[0_15px_30px_rgba(0,0,0,0.3)] aspect-[4/3] group">
-                      <img src={img.url} alt="Gallery item" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                      {img.caption && (
-                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                          <span className="text-white text-sm font-medium">{img.caption}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          );
-        })()}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* ── TESTIMONIALS ── */}

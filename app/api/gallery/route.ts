@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 export async function GET() {
     try {
         const images = await prisma.galleryImage.findMany({
+            include: { house: true },
             orderBy: { createdAt: "desc" },
         });
         return NextResponse.json(images);

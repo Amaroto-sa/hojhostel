@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, useSession, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
@@ -30,7 +30,10 @@ export default function LoginPageClient() {
 
     useEffect(() => {
         if (searchParams.get("registered") === "true") {
-            setSuccessMsg("Account created successfully! Please sign in below.");
+            setSuccessMsg("Account created! Check your email for a verification link before signing in.");
+        }
+        if (searchParams.get("verified") === "true") {
+            setSuccessMsg("Email verified successfully! You can now sign in.");
         }
     }, [searchParams]);
 
@@ -47,11 +50,17 @@ export default function LoginPageClient() {
                 password,
             });
 
-            if (res?.error) {
-                setError("Invalid email or password");
+            if (res?.error === "EmailNotVerified") {
+                setError("EMAIL_NOT_VERIFIED");
+                setLoading(false);
+            } else if (res?.error) {
+                setError("Invalid email or password. Please try again.");
                 setLoading(false);
             } else {
-                router.push("/dashboard");
+                // Get updated session to check role
+                const updatedSession = await getSession();
+                const role = updatedSession?.user?.role;
+                router.push(role === "ADMIN" || role === "SUPER_ADMIN" ? "/admin" : "/dashboard");
                 router.refresh();
             }
         } catch {
@@ -88,11 +97,16 @@ export default function LoginPageClient() {
                     </div>
                 )}
 
-                {error && (
+                {error === "EMAIL_NOT_VERIFIED" ? (
+                    <div className="bg-amber-500/10 border border-amber-500/40 text-amber-300 p-4 rounded-xl mb-6 text-sm text-center">
+                        <p className="font-semibold mb-1">Email not verified</p>
+                        <p>Please check your inbox and click the verification link we sent you. Check your spam folder if you can&apos;t find it.</p>
+                    </div>
+                ) : error ? (
                     <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl mb-6 text-sm text-center">
                         {error}
                     </div>
-                )}
+                ) : null}
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                     <div>

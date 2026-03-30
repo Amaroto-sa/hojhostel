@@ -104,3 +104,23 @@ export function welcomeEmail(customerName: string, houseRules: string) {
     `,
   };
 }
+
+export function verificationEmail(customerName: string, verifyUrl: string) {
+  return {
+    subject: "Verify your email — HOJ Hostel",
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0a0a0c;color:#f5f5f7;border-radius:16px;">
+        <h1 style="color:#ff7a1a;">Verify Your Email</h1>
+        <p>Hi ${customerName},</p>
+        <p>Thanks for registering with HOJ Hostel. Please verify your email address by clicking the button below to activate your account.</p>
+        <div style="text-align:center;margin:32px 0;">
+          <a href="${verifyUrl}" style="background:#ff7a1a;color:#111;font-weight:bold;padding:14px 32px;border-radius:12px;text-decoration:none;display:inline-block;font-size:15px;">Verify Email Address</a>
+        </div>
+        <p style="color:#b1b1ba;font-size:13px;">This link expires in <strong style="color:#f5f5f7;">24 hours</strong>. If you did not register, you can safely ignore this email.</p>
+        <hr style="border-color:rgba(255,255,255,0.1);margin:20px 0;" />
+        <p style="color:#b1b1ba;font-size:13px;">House of Jesse / HOJ Hostel &nbsp;|&nbsp; <a href="https://wa.me/2348145416775" style="color:#ff7a1a;">+234 814 541 6775</a></p>
+      </div>
+    `,
+  };
+}
+

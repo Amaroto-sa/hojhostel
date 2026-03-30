@@ -37,6 +37,10 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("Invalid credentials");
                 }
 
+                if (!user.emailVerified) {
+                    throw new Error("EmailNotVerified");
+                }
+
                 return user;
             }
         })

@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+// Partial schema for safe PATCH — only known listing fields are accepted
+const patchListingSchema = z.object({
+  title: z.string().min(2).optional(),
+  type: z.enum(["BED_SPACE", "SINGLE_ROOM", "APARTMENT"]).optional(),
+  price: z.number().min(0).optional(),
+  capacity: z.number().min(1).optional(),
+  description: z.string().optional(),
+  amenities: z.array(z.string()).optional(),
+  isFeatured: z.boolean().optional(),
+  isPublished: z.boolean().optional(),
+  status: z.enum(["AVAILABLE", "LIMITED", "OCCUPIED", "MAINTENANCE"]).optional(),
+  images: z.array(z.string()).optional(),
+});
 
 export async function GET(
   request: Request,
@@ -34,14 +49,23 @@ export async function PATCH(
     }
 
     const body = await request.json();
+    const validated = patchListingSchema.safeParse(body);
+
+    if (!validated.success) {
+      return NextResponse.json(
+        { error: validated.error.errors[0].message },
+        { status: 400 }
+      );
+    }
 
     const listing = await prisma.listing.update({
       where: { id: params.id },
-      data: body,
+      data: validated.data,
     });
 
     return NextResponse.json(listing);
   } catch (error) {
+    console.error("[Listing PATCH] Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

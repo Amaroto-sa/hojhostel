@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validations";
+import { sendEmail, verificationEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -32,6 +34,10 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Generate email verification token (64-char hex, expires in 24 hours)
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     // Create user and customer profile
     const user = await prisma.user.create({
       data: {
@@ -39,6 +45,8 @@ export async function POST(request: Request) {
         email,
         password: hashedPassword,
         role: "CUSTOMER",
+        verificationToken,
+        verificationExpiry,
         customerProfile: {
           create: {
             phone: phone || null,
@@ -47,8 +55,14 @@ export async function POST(request: Request) {
       },
     });
 
+    // Send verification email
+    const appUrl = process.env.NEXTAUTH_URL || "https://hojhostel.vercel.app";
+    const verifyUrl = `${appUrl}/verify-email?token=${verificationToken}`;
+    const emailData = verificationEmail(name, verifyUrl);
+    await sendEmail({ to: email, ...emailData, type: "email_verification" });
+
     return NextResponse.json(
-      { message: "Account created successfully", userId: user.id },
+      { message: "Account created. Please check your email to verify your account.", userId: user.id },
       { status: 201 }
     );
   } catch (error) {

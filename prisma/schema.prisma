@@ -16,6 +16,9 @@ model User {
   image         String?
   role          Role      @default(CUSTOMER)
 
+  verificationToken  String?   @unique
+  verificationExpiry DateTime?
+
   customerProfile CustomerProfile?
   adminProfile    AdminProfile?
   bookings        Booking[]

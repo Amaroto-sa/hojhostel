@@ -87,7 +87,7 @@ export default function Footer() {
                 <p>📍 Greenland Estate, Olokonla Ajah</p>
               </div>
               <Link
-                href={`https://wa.me/${(settings.whatsapp_number || "2348145416775").replace(/\D/g, '')}`}
+                href={`https://wa.me/${(settings.whatsapp_number || "+2348145416775").replace(/\D/g, '')}`}
                 target="_blank"
                 className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-xs shadow-[0_8px_20px_rgba(255,122,26,0.2)]"
               >
@@ -116,4 +116,3 @@ export default function Footer() {
     </>
   );
 }
- Linda

@@ -263,4 +263,3 @@ model Inquiry {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
- Linda

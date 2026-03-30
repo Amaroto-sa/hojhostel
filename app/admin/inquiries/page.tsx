@@ -99,8 +99,8 @@ export default function AdminInquiries() {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => updateStatus(inquiry.id, inquiry.status === 'READ' ? 'UNREAD' : 'READ')}
-                                        className={`p-2.5 rounded-xl border transition-all ${inquiry.status === 'READ' 
-                                            ? 'bg-green-500/10 border-green-500/20 text-green-400' 
+                                        className={`p-2.5 rounded-xl border transition-all ${inquiry.status === 'READ'
+                                            ? 'bg-green-500/10 border-green-500/20 text-green-400'
                                             : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
                                         title={inquiry.status === 'READ' ? "Mark as Unread" : "Mark as Read"}
                                     >
@@ -126,4 +126,4 @@ export default function AdminInquiries() {
         </div>
     );
 }
- Linda
+

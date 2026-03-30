@@ -133,7 +133,7 @@ export default async function AdminDashboardOverview() {
                   </div>
                 ))
               ) : (
-                <div colSpan={2} className="py-4 text-center text-gray-500 text-sm italic">No inquiries received yet.</div>
+                <div className="py-4 text-center text-gray-500 text-sm italic">No inquiries received yet.</div>
               )}
             </div>
           </div>
@@ -190,4 +190,3 @@ function StatCard({ title, value, description, alert = false }: { title: string,
     </div>
   );
 }
- Linda

@@ -143,4 +143,3 @@ export default function AdminSidebar({ session, logoUrl }: AdminSidebarProps) {
         </>
     );
 }
- Linda

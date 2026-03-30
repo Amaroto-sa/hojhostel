@@ -108,9 +108,42 @@ export async function POST(request: Request) {
       await sendEmail({ to: session.user.email, ...customerEmail, type: "booking_confirmation" });
     }
 
-    // Notify admin
-    const adminEmail = adminBookingNotificationEmail(data.residentName, listing.title);
+    // Prepare Admin Notification Details
+    const notificationDetails = {
+      customerName: data.residentName,
+      customerEmail: session.user.email,
+      listingTitle: listing.title,
+      houseName: listing.house.name,
+      checkInDate: data.checkInDate,
+      duration: data.duration,
+      durationCount: data.durationCount,
+      totalPrice: Math.round(totalPrice),
+      residentPhone: data.residentPhone,
+      emergencyContact: data.emergencyContact,
+      emergencyRel: data.emergencyRel,
+      notes: data.notes || "None",
+      isVerified: !!session.user.emailVerified,
+    };
+
+    // Notify admin via Email
+    const adminEmail = adminBookingNotificationEmail(notificationDetails);
     await sendEmail({ to: "houseofjessehostel@gmail.com", ...adminEmail, type: "admin_notification" });
+
+    // Notify admin via Telegram
+    const telegramMsg = `
+<b>🚨 New Booking Request</b>
+<b>Resident:</b> ${data.residentName} (${session.user.emailVerified ? '✅ verified' : '❌ unverified'})
+<b>Accommodation:</b> ${listing.title}
+<b>Location:</b> ${listing.house.name}
+<b>Duration:</b> ${data.durationCount} ${data.duration.toLowerCase()}
+<b>Total:</b> ₦${Math.round(totalPrice).toLocaleString()}
+<b>Check-in:</b> ${new Date(data.checkInDate).toDateString()}
+
+<a href="${process.env.NEXTAUTH_URL || 'https://hojhostel.vercel.app'}/admin/bookings">View in Admin Panel</a>
+    `.trim();
+
+    const { sendTelegramNotification } = await import("@/lib/email");
+    await sendTelegramNotification(telegramMsg);
 
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {

@@ -17,11 +17,19 @@ export default async function LocationsPage() {
       orderBy: { name: "asc" }
     });
 
+    // Fetch site settings for dynamic WhatsApp number
+    const settings = await prisma.setting.findMany();
+    const settingsMap: Record<string, string> = {};
+    settings.forEach((s) => { settingsMap[s.key] = s.value; });
+    const whatsapp = settingsMap["whatsapp_number"] || "2348145416775";
+    const whatsappLinkNumber = whatsapp.replace(/\D/g, '');
+
     // Fallback: If no galleryImages are assigned, try using the native `house.images`.
     // Otherwise use the galleryImages urls so it reflects what admin posted in the Gallery dashboard.
     houses = fetchedHouses.map(h => ({
       ...h,
-      displayPhotos: h.galleryImages.length > 0 ? h.galleryImages.map(g => g.url) : h.images
+      displayPhotos: h.galleryImages.length > 0 ? h.galleryImages.map(g => g.url) : h.images,
+      whatsappLink: `https://wa.me/${whatsappLinkNumber}?text=${encodeURIComponent('Hi, I want to inquire about ' + h.name)}`
     }));
   } catch { }
 
@@ -86,7 +94,7 @@ export default async function LocationsPage() {
                   <Link href="/availability" className="flex-1 text-center py-2.5 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-sm">
                     Check Availability
                   </Link>
-                  <Link href={`https://wa.me/2348145416775?text=${encodeURIComponent('Hi, I want to inquire about ' + house.name)}`} target="_blank" className="px-5 py-2.5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white font-bold text-sm">
+                  <Link href={house.whatsappLink || `https://wa.me/2348145416775`} target="_blank" className="px-5 py-2.5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white font-bold text-sm">
                     WhatsApp
                   </Link>
                 </div>

@@ -10,6 +10,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(true);
+  const [whatsapp, setWhatsapp] = useState("2348145416775");
   const { data: session } = useSession();
   const pathname = usePathname();
 
@@ -17,6 +18,7 @@ export default function Navbar() {
     fetch("/api/settings").then(r => r.json()).then(data => {
       if (data.logo_url) setLogoUrl(data.logo_url);
       if (data.enable_user_auth === "false") setShowAuth(false);
+      if (data.whatsapp_number) setWhatsapp(data.whatsapp_number.replace(/\D/g, ''));
     }).catch(() => { });
   }, []);
 
@@ -72,7 +74,7 @@ export default function Navbar() {
             )}
 
             <Link
-              href="https://wa.me/2348145416775"
+              href={`https://wa.me/${whatsapp}`}
               target="_blank"
               className="ml-1 px-5 py-2.5 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-extrabold text-sm shadow-[0_10px_30px_rgba(255,122,26,0.28)] hover:-translate-y-0.5 transition-transform"
             >
@@ -115,7 +117,7 @@ export default function Navbar() {
             ) : null}
 
             <Link
-              href="https://wa.me/2348145416775"
+              href={`https://wa.me/${whatsapp}`}
               target="_blank"
               className="mt-2 w-full text-center px-5 py-3 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-extrabold"
               onClick={() => setIsOpen(false)}

@@ -106,7 +106,7 @@ export default function Footer() {
 
       {/* Floating WhatsApp button */}
       <Link
-        href="https://wa.me/2348145416775"
+        href={`https://wa.me/${(settings.whatsapp_number || "2348145416775").replace(/\D/g, "")}`}
         target="_blank"
         aria-label="WhatsApp booking"
         className="fixed right-5 bottom-5 z-50 w-[60px] h-[60px] rounded-full flex items-center justify-center bg-gradient-to-br from-[#25d366] to-[#18b453] text-white shadow-[0_15px_40px_rgba(37,211,102,0.35)] hover:-translate-y-1 transition-transform"

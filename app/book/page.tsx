@@ -45,12 +45,14 @@ export default function BookPage() {
   }, []);
 
   const [isGuestAllowed, setIsGuestAllowed] = useState(false);
+  const [whatsapp, setWhatsapp] = useState("2348145416775");
 
   useEffect(() => {
     fetch("/api/settings")
       .then(r => r.json())
       .then(data => {
         if (data.enable_guest_booking === "true") setIsGuestAllowed(true);
+        if (data.whatsapp_number) setWhatsapp(data.whatsapp_number);
       })
       .catch(() => { });
   }, []);
@@ -105,7 +107,7 @@ export default function BookPage() {
           <p className="text-sm text-[#b1b1ba] mb-8">House rules will be included in your welcome email once your booking is approved.</p>
           <div className="flex gap-3 justify-center">
             <Link href="/dashboard" className="px-6 py-3 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold">View Dashboard</Link>
-            <Link href="https://wa.me/2348145416775" target="_blank" className="px-6 py-3 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white font-bold">WhatsApp</Link>
+            <Link href={`https://wa.me/${whatsapp.replace(/\D/g, '')}`} target="_blank" className="px-6 py-3 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white font-bold">WhatsApp</Link>
           </div>
         </div>
       </div>
@@ -227,7 +229,7 @@ export default function BookPage() {
           <div className="glass p-6">
             <h3 className="font-display text-lg mb-4">Quick Contact</h3>
             <p className="text-sm text-[#b1b1ba] mb-4">Prefer to book directly? Reach us on WhatsApp for instant response.</p>
-            <Link href="https://wa.me/2348145416775" target="_blank" className="block text-center w-full py-3 rounded-full bg-gradient-to-br from-[#25d366] to-[#18b453] text-white font-bold text-sm">
+            <Link href={`https://wa.me/${whatsapp.replace(/\D/g, '')}`} target="_blank" className="block text-center w-full py-3 rounded-full bg-gradient-to-br from-[#25d366] to-[#18b453] text-white font-bold text-sm">
               Chat on WhatsApp
             </Link>
           </div>
@@ -259,7 +261,7 @@ export default function BookPage() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-[#b1b1ba]">
                 <span>WhatsApp</span>
-                <span className="text-white font-medium">+234 814 541 6775</span>
+                <span className="text-white font-medium">{whatsapp}</span>
               </div>
               <div className="flex justify-between text-[#b1b1ba]">
                 <span>Email</span>

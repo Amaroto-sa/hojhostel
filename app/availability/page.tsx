@@ -10,6 +10,7 @@ export const metadata = {
 export default async function AvailabilityPage() {
   let listings: any[] = [];
   let houses: any[] = [];
+  let whatsappLink = "https://wa.me/2348145416775";
 
   try {
     listings = await prisma.listing.findMany({
@@ -18,6 +19,13 @@ export default async function AvailabilityPage() {
       orderBy: { createdAt: "desc" },
     });
     houses = await prisma.house.findMany({ where: { isActive: true } });
+    
+    const settings = await prisma.setting.findMany();
+    const settingsMap: Record<string, string> = {};
+    settings.forEach((s) => { settingsMap[s.key] = s.value; });
+    const whatsapp = settingsMap["whatsapp_number"] || "2348145416775";
+    const whatsappLinkNumber = whatsapp.replace(/\D/g, '');
+    whatsappLink = `https://wa.me/${whatsappLinkNumber}`;
   } catch {
     // Database not connected yet — show static data
   }
@@ -77,7 +85,7 @@ export default async function AvailabilityPage() {
                   <Link href="/book" className="flex-1 text-center py-2.5 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-sm transition hover:shadow-[0_10px_30px_rgba(255,122,26,0.28)]">
                     Book Now
                   </Link>
-                  <Link href={`https://wa.me/2348145416775?text=${encodeURIComponent(`Hi, I want to inquire about ${listing.title}`)}`} target="_blank" className="px-4 py-2.5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white text-sm font-bold transition hover:bg-[rgba(255,255,255,0.1)]">
+                  <Link href={`${whatsappLink}?text=${encodeURIComponent(`Hi, I want to inquire about ${listing.title}`)}`} target="_blank" className="px-4 py-2.5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white text-sm font-bold transition hover:bg-[rgba(255,255,255,0.1)]">
                     WhatsApp
                   </Link>
                 </>
@@ -94,7 +102,7 @@ export default async function AvailabilityPage() {
       <div className="mt-14 glass p-8 text-center">
         <h2 className="font-display text-2xl mb-3">Can't find what you're looking for?</h2>
         <p className="text-[#b1b1ba] mb-6 max-w-lg mx-auto">Reach out to us directly on WhatsApp for personalized assistance with your accommodation needs.</p>
-        <Link href="https://wa.me/2348145416775" target="_blank" className="inline-flex px-6 py-3 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold shadow-[0_10px_30px_rgba(255,122,26,0.28)]">
+        <Link href={whatsappLink} target="_blank" className="inline-flex px-6 py-3 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold shadow-[0_10px_30px_rgba(255,122,26,0.28)]">
           Chat on WhatsApp
         </Link>
       </div>

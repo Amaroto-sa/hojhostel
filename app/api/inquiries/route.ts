@@ -20,7 +20,7 @@ export async function POST(request: Request) {
             // Remove HTML tags and potentially malicious characters
             return str.replace(/<[^>]*>?/gm, '').replace(/[<>]/g, '').trim();
         };
-        
+
         const sanitizedData = {
             name: sanitize(name),
             email: sanitize(email),
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
         // Notifications
         const notificationMsg = `📩 <b>New Website Inquiry</b>\n\n<b>From:</b> ${sanitizedData.name}\n<b>Email:</b> ${sanitizedData.email}\n<b>Phone:</b> ${sanitizedData.phone || 'N/A'}\n<b>Subject:</b> ${sanitizedData.subject}\n\n<b>Message:</b>\n${sanitizedData.message}`;
-        
+
         // Notify via Telegram
         try {
             await sendTelegramNotification(notificationMsg);
@@ -71,7 +71,8 @@ export async function POST(request: Request) {
                         </div>
                     </div>
                 `,
-                type: "inquiry_alert"
+                type: "inquiry_alert",
+                replyTo: sanitizedData.email,
             });
         } catch (e) {
             console.error("Email notification failed:", e);

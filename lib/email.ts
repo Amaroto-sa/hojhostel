@@ -8,9 +8,10 @@ interface EmailOptions {
   subject: string;
   html: string;
   type?: string;
+  replyTo?: string;
 }
 
-export async function sendEmail({ to, subject, html, type = "general" }: EmailOptions) {
+export async function sendEmail({ to, subject, html, type = "general", replyTo }: EmailOptions) {
   const host = process.env.SMTP_HOST;
   const port = process.env.SMTP_PORT;
   const user = process.env.SMTP_USER;
@@ -30,7 +31,7 @@ export async function sendEmail({ to, subject, html, type = "general" }: EmailOp
       auth: { user, pass },
     });
 
-    await transporter.sendMail({ from, to, subject, html });
+    await transporter.sendMail({ from, to, subject, html, replyTo });
     console.log(`[Email] Sent "${subject}" to ${to}`);
     return { success: true };
   } catch (error: any) {

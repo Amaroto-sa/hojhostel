@@ -1,13 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Mail, Phone, Calendar, Trash2, CheckCircle, Clock } from "lucide-react";
+import { Mail, Phone, Calendar, Trash2, CheckCircle, Clock, Reply, X, Send } from "lucide-react";
 
 export default function AdminInquiries() {
     const [inquiries, setInquiries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [replyModal, setReplyModal] = useState<{ open: boolean; inquiry: any | null }>({ open: false, inquiry: null });
+    const [replyMessage, setReplyMessage] = useState("");
+    const [sending, setSending] = useState(false);
+
     useEffect(() => {
+        fetchInquiries();
+    }, []);
+
+    const fetchInquiries = () => {
         fetch("/api/inquiries")
             .then(res => res.json())
             .then(data => {
@@ -15,7 +23,7 @@ export default function AdminInquiries() {
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    }, []);
+    };
 
     const updateStatus = async (id: string, status: string) => {
         try {
@@ -37,6 +45,35 @@ export default function AdminInquiries() {
             setInquiries(inquiries.filter(inq => inq.id !== id));
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const handleReplySubmit = async () => {
+        if (!replyModal.inquiry) return;
+        if (!replyMessage.trim()) return alert("Please enter a message to send.");
+
+        setSending(true);
+        try {
+            const res = await fetch(`/api/inquiries/${replyModal.inquiry.id}/reply`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: replyMessage }),
+            });
+
+            if (!res.ok) throw new Error("Failed to send reply");
+
+            // Update status local state
+            setInquiries(inquiries.map(inq => inq.id === replyModal.inquiry.id ? { ...inq, status: "REPLIED" } : inq));
+
+            // Close and clean up
+            setReplyModal({ open: false, inquiry: null });
+            setReplyMessage("");
+            alert("Reply sent successfully via email!");
+        } catch (error) {
+            console.error(error);
+            alert("An error occurred while sending the email reply.");
+        } finally {
+            setSending(false);
         }
     };
 
@@ -75,6 +112,9 @@ export default function AdminInquiries() {
                                         {inquiry.status === 'UNREAD' && (
                                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#ff7a1a] text-[#111] font-bold">NEW</span>
                                         )}
+                                        {inquiry.status === 'REPLIED' && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500 text-white font-bold">REPLIED</span>
+                                        )}
                                     </h3>
                                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#b1b1ba]">
                                         <span className="flex items-center gap-1.5 text-white font-medium">
@@ -97,6 +137,13 @@ export default function AdminInquiries() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setReplyModal({ open: true, inquiry })}
+                                        className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white transition-all flex items-center gap-2 text-sm font-medium"
+                                        title="Reply to Inquiry"
+                                    >
+                                        <Reply size={16} /> <span className="hidden sm:inline">Reply</span>
+                                    </button>
                                     <button
                                         onClick={() => updateStatus(inquiry.id, inquiry.status === 'READ' ? 'UNREAD' : 'READ')}
                                         className={`p-2.5 rounded-xl border transition-all ${inquiry.status === 'READ'
@@ -123,7 +170,53 @@ export default function AdminInquiries() {
                     ))
                 )}
             </div>
+
+            {/* Reply Modal */}
+            {replyModal.open && replyModal.inquiry && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-[#14141a] border border-[rgba(255,255,255,0.1)] rounded-2xl shadow-2xl w-full max-w-2xl p-6 md:p-8 relative">
+                        <button onClick={() => setReplyModal({ open: false, inquiry: null })}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-white transition"><X size={20} /></button>
+
+                        <h2 className="font-display text-2xl text-white mb-2 flex items-center gap-2">
+                            <Reply size={24} className="text-[#ff7a1a]" /> Reply via Email
+                        </h2>
+
+                        <div className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 mb-6 space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-500 w-20">To:</span>
+                                <span className="text-white font-medium flex-1">{replyModal.inquiry.name} &lt;{replyModal.inquiry.email}&gt;</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500 w-20">Subject:</span>
+                                <span className="text-white font-medium flex-1">Re: {replyModal.inquiry.subject}</span>
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium mb-2 text-gray-300">Your Message</label>
+                            <textarea
+                                rows={8}
+                                value={replyMessage}
+                                onChange={e => setReplyMessage(e.target.value)}
+                                placeholder="Type your response here... (It will be emailed directly to them)"
+                                className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors resize-none"
+                            />
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button onClick={() => setReplyModal({ open: false, inquiry: null })}
+                                className="px-6 py-3 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white font-medium text-sm hover:bg-[rgba(255,255,255,0.08)] transition">
+                                Cancel
+                            </button>
+                            <button onClick={handleReplySubmit} disabled={sending || !replyMessage.trim()}
+                                className="flex-1 py-3 rounded-xl bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-sm disabled:opacity-50 hover:scale-[1.01] transition-transform flex items-center justify-center gap-2">
+                                {sending ? "Sending Email..." : <><Send size={16} /> Send Email Reply</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
-

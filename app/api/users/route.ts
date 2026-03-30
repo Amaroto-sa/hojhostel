@@ -19,6 +19,7 @@ export async function GET() {
                 role: true,
                 emailVerified: true,
                 createdAt: true,
+                isSuspended: true,
                 _count: {
                     select: { bookings: true }
                 }

@@ -41,6 +41,10 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("EmailNotVerified");
                 }
 
+                if ((user as any).isSuspended) {
+                    throw new Error("AccountSuspended");
+                }
+
                 return user;
             }
         })

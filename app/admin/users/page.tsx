@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserCircle, Mail, Calendar, Shield } from "lucide-react";
+import { UserCircle, Mail, Calendar, Shield, Trash2, Ban, CheckCircle, Eye, X } from "lucide-react";
 
 export default function AdminUsersPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all");
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [viewUser, setViewUser] = useState<any | null>(null);
 
     useEffect(() => {
         fetchUsers();
@@ -21,6 +23,36 @@ export default function AdminUsersPage() {
             console.error("Failed to fetch users", error);
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function toggleSuspend(userId: string, currentStatus: boolean) {
+        if (!confirm(`Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`)) return;
+        setActionLoading(userId);
+        try {
+            await fetch(`/api/users/${userId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ isSuspended: !currentStatus })
+            });
+            fetchUsers();
+        } catch (error) {
+            console.error("Failed to toggle suspend", error);
+        } finally {
+            setActionLoading(null);
+        }
+    }
+
+    async function deleteUser(userId: string) {
+        if (!confirm("WARNING: This will permanently delete this user account. Proceed?")) return;
+        setActionLoading(userId);
+        try {
+            await fetch(`/api/users/${userId}`, { method: "DELETE" });
+            fetchUsers();
+        } catch (error) {
+            console.error("Failed to delete user", error);
+        } finally {
+            setActionLoading(null);
         }
     }
 
@@ -54,6 +86,7 @@ export default function AdminUsersPage() {
                             <th className="px-6 py-4 font-medium text-sm">Role</th>
                             <th className="px-6 py-4 font-medium text-sm">Bookings Made</th>
                             <th className="px-6 py-4 font-medium text-sm">Joined</th>
+                            <th className="px-6 py-4 font-medium text-sm text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,12 +131,75 @@ export default function AdminUsersPage() {
                                         <Calendar size={12} />
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                disabled={actionLoading === user.id || user.role === "SUPER_ADMIN"}
+                                                onClick={() => toggleSuspend(user.id, user.isSuspended)}
+                                                className={`p-2 rounded-lg transition ${actionLoading === user.id ? 'opacity-50' : ''} ${user.role === "SUPER_ADMIN" ? 'opacity-20 cursor-not-allowed' : 'hover:bg-[rgba(255,255,255,0.05)]'} ${user.isSuspended ? 'text-green-400' : 'text-orange-400'}`}
+                                                title={user.isSuspended ? "Unsuspend Account" : "Suspend Account"}
+                                            >
+                                                {user.isSuspended ? <CheckCircle size={16} /> : <Ban size={16} />}
+                                            </button>
+                                            <button
+                                                disabled={actionLoading === user.id || user.role === "SUPER_ADMIN"}
+                                                onClick={() => deleteUser(user.id)}
+                                                className={`p-2 rounded-lg transition ${actionLoading === user.id ? 'opacity-50' : ''} ${user.role === "SUPER_ADMIN" ? 'opacity-20 cursor-not-allowed' : 'hover:bg-[rgba(255,255,255,0.05)] text-red-400'}`}
+                                                title="Delete Account"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
             </div>
+
+            {viewUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#121216] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6 w-full max-w-md relative">
+                        <button onClick={() => setViewUser(null)} className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition">
+                            <X size={20} />
+                        </button>
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] flex items-center justify-center">
+                                <UserCircle size={30} className="text-gray-400" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-xl text-white">{viewUser.name || "Unnamed User"}</h3>
+                                <p className="text-gray-500 text-sm">{viewUser.email}</p>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center py-3 border-b border-[rgba(255,255,255,0.04)]">
+                                <span className="text-gray-500 text-sm">Role</span>
+                                <span className={`px-3 py-1 text-xs font-bold rounded-full ${roleColors[viewUser.role] || roleColors.CUSTOMER}`}>{viewUser.role}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-3 border-b border-[rgba(255,255,255,0.04)]">
+                                <span className="text-gray-500 text-sm">Status</span>
+                                <span className={`text-sm font-medium ${viewUser.isSuspended ? 'text-orange-400' : 'text-green-400'}`}>{viewUser.isSuspended ? 'Suspended' : 'Active'}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-3 border-b border-[rgba(255,255,255,0.04)]">
+                                <span className="text-gray-500 text-sm">Total Bookings Executed</span>
+                                <span className="text-white text-sm font-medium">{viewUser._count?.bookings || 0}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-3 border-b border-[rgba(255,255,255,0.04)]">
+                                <span className="text-gray-500 text-sm">Email Verification</span>
+                                <span className={`flex items-center gap-1.5 text-sm font-medium ${viewUser.emailVerified ? 'text-green-400' : 'text-yellow-400'}`}>
+                                    {viewUser.emailVerified ? <><Shield size={14} /> Verified</> : <><Mail size={14} /> Pending</>}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center py-3">
+                                <span className="text-gray-500 text-sm">Joined Platform</span>
+                                <span className="text-white text-sm">{new Date(viewUser.createdAt).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -18,6 +18,7 @@ model User {
 
   verificationToken  String?   @unique
   verificationExpiry DateTime?
+  isSuspended        Boolean   @default(false)
 
   customerProfile CustomerProfile?
   adminProfile    AdminProfile?

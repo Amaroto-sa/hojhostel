@@ -9,12 +9,14 @@ import { usePathname } from "next/navigation";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(true);
   const { data: session } = useSession();
   const pathname = usePathname();
 
   useEffect(() => {
     fetch("/api/settings").then(r => r.json()).then(data => {
       if (data.logo_url) setLogoUrl(data.logo_url);
+      if (data.enable_user_auth === "false") setShowAuth(false);
     }).catch(() => { });
   }, []);
 
@@ -108,9 +110,9 @@ export default function Navbar() {
               >
                 Dashboard
               </Link>
-            ) : (
+            ) : showAuth ? (
               <Link href="/login" className="text-[#f5f5f7] font-medium text-lg w-full" onClick={() => setIsOpen(false)}>Login / Register</Link>
-            )}
+            ) : null}
 
             <Link
               href="https://wa.me/2348145416775"

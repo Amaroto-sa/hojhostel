@@ -8,6 +8,7 @@ export default async function AdminDashboardOverview() {
   let activeBookings = 0;
   let pendingRequests = 0;
   let totalResidents = 0;
+  let pendingComplaints = 0;
 
   let recentPending: any[] = [];
   let upcomingRenewals: any[] = [];
@@ -17,6 +18,7 @@ export default async function AdminDashboardOverview() {
     activeBookings = await prisma.booking.count({ where: { status: "APPROVED" } });
     pendingRequests = await prisma.booking.count({ where: { status: "PENDING" } });
     totalResidents = await prisma.resident.count({ where: { status: "ACTIVE" } });
+    pendingComplaints = await prisma.complaint.count({ where: { status: "PENDING" } });
 
     recentPending = await prisma.booking.findMany({
       where: { status: "PENDING" },
@@ -54,7 +56,7 @@ export default async function AdminDashboardOverview() {
         <StatCard title="Total Listings" value={totalListings} description="Apartments & bed spaces" />
         <StatCard title="Active Residents" value={totalResidents} description="Currently checked in" />
         <StatCard title="Pending Bookings" value={pendingRequests} description="Requires approval" alert={pendingRequests > 0} />
-        <StatCard title="Active Bookings" value={activeBookings} description="Approved requests" />
+        <StatCard title="Pending Complaints" value={pendingComplaints} description="Reported issues" alert={pendingComplaints > 0} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

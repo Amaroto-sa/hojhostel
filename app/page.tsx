@@ -67,9 +67,11 @@ export default async function Home() {
               <Link href={whatsappLink} target="_blank" className="inline-flex items-center justify-center px-6 py-3.5 rounded-full font-extrabold transition-transform hover:-translate-y-0.5 bg-white/5 border border-white/10 text-white">
                 Book via WhatsApp
               </Link>
-              <Link href="/login" className="inline-flex items-center justify-center px-6 py-3.5 rounded-full font-extrabold transition-transform hover:-translate-y-0.5 bg-white/5 border border-white/10 text-white">
-                Login / Register
-              </Link>
+              {settingsMap["enable_user_auth"] !== "false" && (
+                <Link href="/login" className="inline-flex items-center justify-center px-6 py-3.5 rounded-full font-extrabold transition-transform hover:-translate-y-0.5 bg-white/5 border border-white/10 text-white">
+                  Login / Register
+                </Link>
+              )}
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {["🎥 CCTV", "⚡ Steady Electricity", "📶 Wi-Fi", "📅 Flexible Stay"].map((trust) => (

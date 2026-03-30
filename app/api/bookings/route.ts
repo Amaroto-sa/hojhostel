@@ -46,7 +46,12 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user) {
+
+    // Check if guest booking is enabled
+    const authSetting = await prisma.setting.findUnique({ where: { key: "enable_guest_booking" } });
+    const isGuestAllowed = authSetting?.value === "true";
+
+    if (!session?.user && !isGuestAllowed) {
       return NextResponse.json({ error: "Please sign in to submit a booking" }, { status: 401 });
     }
 
@@ -86,7 +91,7 @@ export async function POST(request: Request) {
 
     const booking = await prisma.booking.create({
       data: {
-        userId: session.user.id,
+        userId: session?.user?.id || null,
         listingId: data.listingId,
         checkInDate: new Date(data.checkInDate),
         duration: data.duration,
@@ -104,18 +109,18 @@ export async function POST(request: Request) {
 
     // Send confirmation emails
     const customerEmail = bookingSubmisionEmail(data.residentName, listing.title);
-    if (session.user.email) {
+    if (session?.user?.email) {
       await sendEmail({ to: session.user.email, ...customerEmail, type: "booking_confirmation" });
     }
 
     // In 'authOptions', we already throw error if !user.emailVerified
     // so if the 'session' exists, the user is technically verified.
-    const isVerified = true;
+    const isVerified = !!session?.user;
 
     // Prepare Admin Notification Details
     const notificationDetails = {
       customerName: data.residentName,
-      customerEmail: session.user.email,
+      customerEmail: session?.user?.email,
       listingTitle: listing.title,
       houseName: listing.house.name,
       checkInDate: data.checkInDate,

@@ -5,8 +5,13 @@ import { Save, UploadCloud } from "lucide-react";
 
 const defaultSettings = [
   { key: "hostel_intro", label: "Hostel Introduction Text", type: "textarea" },
+  { key: "enable_user_auth", label: "Show Login/Register System", type: "checkbox" },
+  { key: "enable_guest_booking", label: "Allow Booking without Account", type: "checkbox" },
   { key: "whatsapp_number", label: "WhatsApp Number", type: "text" },
   { key: "contact_email", label: "Contact Email", type: "text" },
+  { key: "social_instagram", label: "Instagram Link", type: "text" },
+  { key: "social_facebook", label: "Facebook Link", type: "text" },
+  { key: "social_twitter", label: "Twitter/X Link", type: "text" },
   { key: "footer_text", label: "Footer Text", type: "text" },
   { key: "house_rules", label: "House Rules / Welcome Message", type: "textarea" },
   { key: "logo_url", label: "Logo URL (from Cloudinary)", type: "text" },
@@ -115,6 +120,16 @@ export default function AdminSettingsPage() {
                 rows={4}
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors resize-none"
               />
+            ) : s.type === "checkbox" ? (
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={settings[s.key] === "true"}
+                  onChange={(e) => setSettings({ ...settings, [s.key]: e.target.checked ? "true" : "false" })}
+                  className="w-5 h-5 rounded border-white/10 bg-white/5 text-[#ff7a1a] focus:ring-[#ff7a1a]"
+                />
+                <span className="text-sm text-[#b1b1ba]">Enabled</span>
+              </div>
             ) : (
               <input
                 type="text"

@@ -44,6 +44,17 @@ export default function BookPage() {
       });
   }, []);
 
+  const [isGuestAllowed, setIsGuestAllowed] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(data => {
+        if (data.enable_guest_booking === "true") setIsGuestAllowed(true);
+      })
+      .catch(() => { });
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -51,7 +62,7 @@ export default function BookPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!session) {
+    if (!session && !isGuestAllowed) {
       router.push("/login");
       return;
     }
@@ -109,7 +120,7 @@ export default function BookPage() {
           <h1 className="font-display text-4xl tracking-tight mb-2">Book Your Space</h1>
           <p className="text-[#b1b1ba] mb-8">Fill out the form below to submit a booking request. Our team will review and confirm your booking.</p>
 
-          {!session && (
+          {!session && !isGuestAllowed && (
             <div className="bg-[rgba(255,122,26,0.1)] border border-[rgba(255,122,26,0.2)] p-4 rounded-xl mb-8 flex items-center justify-between">
               <span className="text-[#ffd2b0] text-sm font-medium">Please sign in or create an account to submit a booking.</span>
               <Link href="/login" className="px-4 py-2 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-sm">Sign In</Link>
@@ -199,7 +210,7 @@ export default function BookPage() {
 
             <button
               type="submit"
-              disabled={loading || !session}
+              disabled={loading || (!session && !isGuestAllowed)}
               className="w-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold py-4 rounded-xl shadow-[0_10px_30px_rgba(255,122,26,0.28)] hover:scale-[1.01] transition-transform disabled:opacity-50 text-lg"
             >
               {loading ? "Submitting..." : "Submit Booking Request"}

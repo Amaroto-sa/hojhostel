@@ -193,6 +193,12 @@ export default async function CustomerDashboard() {
               >
                 WhatsApp Support
               </Link>
+              <Link
+                href="/complaint"
+                className="block text-center w-full py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-sm hover:bg-red-500 hover:text-white transition-all"
+              >
+                Report an Issue / Complaint
+              </Link>
             </div>
           </div>
 

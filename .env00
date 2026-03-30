@@ -1,0 +1,6 @@
+SMTP_HOST=smtppro.zoho.com
+SMTP_PORT=587
+SMTP_USER=no-reply@cardswaphub.xyz
+SMTP_PASS=Ezm3$vqh
+SMTP_FROM_EMAIL=no-reply@cardswaphub.xyz
+SMTP_FROM_NAME=CardSwapHub

@@ -7,7 +7,6 @@ import { houseSchema } from "@/lib/validations";
 export async function GET() {
   try {
     const houses = await prisma.house.findMany({
-      where: { isActive: true },
       include: { listings: { where: { isPublished: true } } },
       orderBy: { createdAt: "asc" },
     });

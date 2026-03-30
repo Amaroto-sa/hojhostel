@@ -87,8 +87,8 @@ export async function PATCH(
         },
       });
 
-      // Send welcome email
-      if (booking.user.email) {
+      // Send welcome email if user exists
+      if (booking.user?.email) {
         // Get house rules from settings
         const houseRulesSetting = await prisma.setting.findUnique({
           where: { key: "house_rules" },
@@ -98,8 +98,8 @@ export async function PATCH(
       }
     }
 
-    // Send status update email
-    if (booking.user.email) {
+    // Send status update email if user exists
+    if (booking.user?.email) {
       const statusEmailData = bookingStatusEmail(booking.residentName, status);
       await sendEmail({ to: booking.user.email, ...statusEmailData, type: "booking_status" });
     }

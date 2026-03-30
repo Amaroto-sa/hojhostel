@@ -5,12 +5,21 @@ import { Trash2, UploadCloud, Loader2 } from "lucide-react";
 
 export default function AdminGalleryPage() {
     const [images, setImages] = useState<any[]>([]);
+    const [houses, setHouses] = useState<any[]>([]);
+    const [selectedHouseId, setSelectedHouseId] = useState<string>("");
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         fetchGallery();
+        fetchHouses();
     }, []);
+
+    async function fetchHouses() {
+        const res = await fetch("/api/houses");
+        const data = await res.json();
+        setHouses(data);
+    }
 
     async function fetchGallery() {
         try {
@@ -49,7 +58,10 @@ export default function AdminGalleryPage() {
             await fetch("/api/gallery", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: uploadData.url }),
+                body: JSON.stringify({
+                    url: uploadData.url,
+                    houseId: selectedHouseId || null
+                }),
             });
 
             await fetchGallery();
@@ -93,6 +105,19 @@ export default function AdminGalleryPage() {
                 <h3 className="text-white font-medium mb-1">Upload New Image</h3>
                 <p className="text-sm text-[#b1b1ba] mb-6">Select an image to add it immediately to your public gallery.</p>
 
+                <div className="mb-6 w-full max-w-xs">
+                    <select
+                        value={selectedHouseId}
+                        onChange={(e) => setSelectedHouseId(e.target.value)}
+                        className="w-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-[#e9e9ec] outline-none text-sm appearance-none"
+                    >
+                        <option value="" className="bg-[#121216]">Global / Unassigned</option>
+                        {houses.map(h => (
+                            <option key={h.id} value={h.id} className="bg-[#121216]">{h.name}</option>
+                        ))}
+                    </select>
+                </div>
+
                 <label className={`cursor-pointer px-8 py-3 rounded-full font-bold text-sm ${uploading ? 'bg-white/10 text-gray-400' : 'bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] hover:-translate-y-0.5 transition-transform shadow-[0_12px_30px_rgba(255,122,26,0.25)]'}`}>
                     {uploading ? <span className="flex items-center gap-2"><Loader2 className="animate-spin" size={16} /> Uploading...</span> : "Select & Upload Image"}
                     <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} disabled={uploading} />
@@ -106,6 +131,11 @@ export default function AdminGalleryPage() {
                     {images.map(img => (
                         <div key={img.id} className="relative group rounded-xl overflow-hidden border border-[rgba(255,255,255,0.06)] aspect-[4/3] bg-[rgba(255,255,255,0.02)] shadow-xl">
                             <img src={img.url} alt="Gallery item" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            {img.houseId ? (
+                                <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-[0.65rem] font-bold text-[#ff7a1a]">
+                                    {houses.find(h => h.id === img.houseId)?.name || "Assigned"}
+                                </div>
+                            ) : null}
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
                                 <button
                                     onClick={() => handleDelete(img.id)}

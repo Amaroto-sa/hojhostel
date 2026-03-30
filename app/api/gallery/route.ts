@@ -21,10 +21,10 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
         }
 
-        const { url, caption } = await request.json();
+        const { url, caption, houseId } = await request.json();
 
         const newImage = await prisma.galleryImage.create({
-            data: { url, caption: caption || null },
+            data: { url, caption: caption || null, houseId: houseId || null },
         });
 
         return NextResponse.json(newImage);

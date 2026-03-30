@@ -77,9 +77,9 @@ export default function AdminUsersPage() {
                                                 <div className="font-medium text-white flex items-center gap-2">
                                                     {user.name || "Unnamed User"}
                                                     {user.emailVerified ? (
-                                                        <Shield size={12} className="text-green-500" title="Email Verified" />
+                                                        <span title="Email Verified"><Shield size={12} className="text-green-500" /></span>
                                                     ) : (
-                                                        <Mail size={12} className="text-yellow-500" title="Pending Verification" />
+                                                        <span title="Pending Verification"><Mail size={12} className="text-yellow-500" /></span>
                                                     )}
                                                 </div>
                                                 <div className="text-xs text-gray-500">{user.email}</div>

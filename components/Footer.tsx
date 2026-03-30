@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Instagram, Facebook, Twitter } from "lucide-react";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
@@ -48,17 +48,17 @@ export default function Footer() {
               <div className="flex gap-3">
                 {settings.social_instagram && (
                   <Link href={settings.social_instagram} target="_blank" className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-[#ff7a1a] hover:text-[#111] transition-all">
-                    <span className="text-[10px] font-bold">IG</span>
+                    <Instagram size={14} />
                   </Link>
                 )}
                 {settings.social_facebook && (
                   <Link href={settings.social_facebook} target="_blank" className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-[#ff7a1a] hover:text-[#111] transition-all">
-                    <span className="text-[10px] font-bold">FB</span>
+                    <Facebook size={14} />
                   </Link>
                 )}
                 {settings.social_twitter && (
                   <Link href={settings.social_twitter} target="_blank" className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-[#ff7a1a] hover:text-[#111] transition-all">
-                    <span className="text-[10px] font-bold">X</span>
+                    <Twitter size={14} />
                   </Link>
                 )}
               </div>

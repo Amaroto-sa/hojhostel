@@ -11,10 +11,18 @@ export const metadata = {
 export default async function LocationsPage() {
   let houses: any[] = [];
   try {
-    houses = await prisma.house.findMany({
+    const fetchedHouses = await prisma.house.findMany({
       where: { isActive: true },
+      include: { galleryImages: { orderBy: { createdAt: "desc" } } },
       orderBy: { name: "asc" }
     });
+
+    // Fallback: If no galleryImages are assigned, try using the native `house.images`.
+    // Otherwise use the galleryImages urls so it reflects what admin posted in the Gallery dashboard.
+    houses = fetchedHouses.map(h => ({
+      ...h,
+      displayPhotos: h.galleryImages.length > 0 ? h.galleryImages.map(g => g.url) : h.images
+    }));
   } catch { }
 
   const displayHouses = houses.length > 0 ? houses : [
@@ -45,13 +53,14 @@ export default async function LocationsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-14">
         {displayHouses.map((house: any, idx: number) => {
-          const hasImage = house.images && house.images.length > 0;
+          const displayPhotos = house.displayPhotos || house.images || [];
+          const hasImage = displayPhotos.length > 0;
           return (
             <div key={house.id} className="glass overflow-hidden group flex flex-col">
               {hasImage ? (
                 <div
-                  className="h-[260px] bg-cover bg-center relative"
-                  style={{ backgroundImage: `url('${house.images[0]}')` }}
+                  className="h-[260px] bg-cover bg-center relative transition-transform duration-700 hover:scale-105"
+                  style={{ backgroundImage: `url('${displayPhotos[0]}')` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                   <div className="absolute bottom-5 left-5 right-5">

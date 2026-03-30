@@ -1,13 +1,21 @@
+"use client";
+
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
-export default async function Footer() {
-  let logoUrl = null;
-  try {
-    const logoSetting = await prisma.setting.findUnique({ where: { key: "logo_url" } });
-    logoUrl = logoSetting?.value;
-  } catch (e) { }
+export default function Footer() {
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    fetch("/api/settings").then(r => r.json()).then(data => {
+      if (data.logo_url) setLogoUrl(data.logo_url);
+    }).catch(() => { });
+  }, []);
+
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <>

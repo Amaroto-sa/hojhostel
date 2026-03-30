@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
 };
 
-import SiteLayoutWrapper from "@/components/SiteLayoutWrapper";
+
 
 export default function RootLayout({
   children,
@@ -50,9 +50,9 @@ export default function RootLayout({
         style={{ fontFamily: "'Inter', sans-serif" }}
       >
         <Providers>
-          <SiteLayoutWrapper>
-            {children}
-          </SiteLayoutWrapper>
+          <Navbar />
+          <main className="relative z-10 min-h-screen">{children}</main>
+          <Footer />
         </Providers>
       </body>
     </html>

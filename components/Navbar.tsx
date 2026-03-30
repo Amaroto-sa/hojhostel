@@ -22,6 +22,8 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const sectionLink = (section: string) => isHome ? `#${section}` : `/#${section}`;
 
+  if (pathname?.startsWith("/admin")) return null;
+
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-[rgba(8,8,10,0.72)] border-b border-[rgba(255,255,255,0.06)]">
       <div className="container mx-auto px-4 w-[92%] max-w-[1180px]">

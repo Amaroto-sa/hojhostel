@@ -151,8 +151,8 @@ export default function BookPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">Email Address <span className="text-[#b1b1ba] font-normal">(for booking updates & confirmations)</span></label>
-              <input type="email" name="residentEmail" value={form.residentEmail} onChange={handleChange} placeholder="your@email.com"
+              <label className="block text-sm font-medium mb-2 text-gray-300">Email Address * <span className="text-[#b1b1ba] font-normal">(for booking updates & confirmations)</span></label>
+              <input type="email" name="residentEmail" value={form.residentEmail} onChange={handleChange} required placeholder="your@email.com"
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors" />
             </div>
 

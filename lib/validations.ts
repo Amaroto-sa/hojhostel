@@ -19,7 +19,7 @@ export const bookingSchema = z.object({
   durationCount: z.number().min(1, "Duration must be at least 1"),
   residentName: z.string().min(2, "Please enter the resident's name"),
   residentPhone: z.string().min(7, "Please enter a valid phone number"),
-  residentEmail: z.string().email("Please enter a valid email address").optional().or(z.literal("")),
+  residentEmail: z.string().email("Please enter a valid email address"),
   residentAddress: z.string().optional(),
   emergencyContact: z.string().min(7, "Please enter an emergency contact number"),
   emergencyRel: z.string().min(2, "Please specify relationship"),

@@ -349,9 +349,21 @@ export default async function Home() {
               <h2 className="font-display text-2xl mb-3">Ajah, Lagos</h2>
               <p className="text-[#b1b1ba] leading-relaxed">Our locations are situated in the rapidly growing Ajah corridor of Lagos, offering easy access to Lekki, Victoria Island, and surrounding areas.</p>
             </div>
-            <div className="mt-6 rounded-2xl min-h-[250px] border border-white/10 bg-gradient-to-b from-black/20 to-black/40 bg-[url('https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center flex items-end p-5">
-              <div className="px-4 py-2 rounded-full bg-[rgba(10,10,12,0.75)] border border-white/10 text-white font-bold text-sm backdrop-blur-sm">
-                📍 {displayHouses[0]?.location || "Olokonla, Ajah, Lagos"}
+            <div className="mt-6 rounded-2xl min-h-[300px] border border-[rgba(255,255,255,0.08)] bg-[#121216] overflow-hidden relative shadow-[0_15px_30px_rgba(0,0,0,0.3)] group">
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0, minHeight: "300px", filter: "invert(90%) hue-rotate(180deg) contrast(85%)" }}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(displayHouses[0]?.location || "Olokonla, Ajah, Lagos")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="absolute inset-0 w-full h-full transition-opacity duration-300 group-hover:opacity-90"
+              ></iframe>
+              <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
+                <div className="inline-block px-4 py-2 rounded-full bg-[rgba(10,10,12,0.85)] border border-white/10 text-white font-bold text-sm backdrop-blur-md shadow-lg">
+                  📍 {displayHouses[0]?.location || "Olokonla, Ajah, Lagos"}
+                </div>
               </div>
             </div>
           </div>

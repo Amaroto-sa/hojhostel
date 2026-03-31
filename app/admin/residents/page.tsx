@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw, Download, Search } from "lucide-react";
+import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw } from "lucide-react";
 
 export default function AdminResidentsPage() {
   const [residents, setResidents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
 
   // Renew modal state
   const [renewModal, setRenewModal] = useState<{ open: boolean; resident: any | null }>({ open: false, resident: null });
@@ -86,53 +85,11 @@ export default function AdminResidentsPage() {
     MOVED_OUT: "text-blue-400 bg-blue-500/10",
   };
 
-  const filteredResidents = residents.filter(r =>
-    r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.listing?.title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const exportCSV = () => {
-    const headers = ["Name", "Email", "Phone", "Emergency Contact", "Accommodation", "Check In", "Due Date", "Duration", "Status"];
-    const rows = filteredResidents.map((r: any) => [
-      r.name, r.email || "N/A", r.phone || "N/A", `${r.emergencyContact} (${r.emergencyRel})`,
-      r.listing?.title || "N/A", new Date(r.checkInDate).toLocaleDateString(), new Date(r.dueDate).toLocaleDateString(),
-      `${r.durationCount} ${r.duration}`, r.status
-    ]);
-
-    const csvContent = [headers.join(","), ...rows.map((row: any[]) => row.map((cell: any) => `"${cell}"`).join(","))].join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", `HOJ_Residents_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <div>
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl text-white">Resident Management</h1>
-          <p className="text-[#b1b1ba] text-sm mt-1">Track current residents, due dates, and renewals.</p>
-        </div>
-        <div className="flex gap-3 items-center">
-          <div className="relative border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] rounded-xl items-center focus-within:border-[#ff7a1a] transition-colors inline-block w-full md:w-64 overflow-hidden">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search residents..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent pl-9 pr-4 py-2.5 text-white text-sm focus:outline-none"
-            />
-          </div>
-          <button onClick={exportCSV} className="px-4 py-2.5 rounded-xl bg-[rgba(255,122,26,0.1)] border border-[rgba(255,122,26,0.2)] text-[#ff7a1a] hover:bg-[#ff7a1a] hover:text-[#111] transition flex items-center gap-2 text-sm font-bold shadow-sm whitespace-nowrap">
-            <Download size={16} /> <span className="hidden md:inline">Export CSV</span>
-          </button>
-        </div>
+      <div className="mb-8">
+        <h1 className="font-display text-3xl text-white">Resident Management</h1>
+        <p className="text-[#b1b1ba] text-sm mt-1">Track current residents, due dates, and renewals.</p>
       </div>
 
       {/* Due Date Alerts */}
@@ -174,10 +131,10 @@ export default function AdminResidentsPage() {
           <tbody>
             {loading ? (
               <tr><td colSpan={6} className="py-10 text-center text-gray-500">Loading...</td></tr>
-            ) : filteredResidents.length === 0 ? (
+            ) : residents.length === 0 ? (
               <tr><td colSpan={6} className="py-10 text-center text-gray-500">No residents found.</td></tr>
             ) : (
-              filteredResidents.map((r: any) => (
+              residents.map((r: any) => (
                 <tr key={r.id} className="border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.02)]">
                   <td className="py-4 px-5">
                     <span className="font-medium text-white block">{r.name}</span>
@@ -188,7 +145,7 @@ export default function AdminResidentsPage() {
                   <td className="py-4 px-5 text-[#b1b1ba]">{r.listing?.house?.name} — {r.listing?.title}</td>
                   <td className="py-4 px-5 text-[#b1b1ba]">{new Date(r.checkInDate).toLocaleDateString()}</td>
                   <td className="py-4 px-5">
-                    <span className={`font - medium ${isOverdue(r.dueDate) ? 'text-red-400' : isDueSoon(r.dueDate) ? 'text-yellow-400' : 'text-white'}`}>
+                    <span className={`font-medium ${isOverdue(r.dueDate) ? 'text-red-400' : isDueSoon(r.dueDate) ? 'text-yellow-400' : 'text-white'}`}>
                       {new Date(r.dueDate).toLocaleDateString()}
                     </span>
                     <br />
@@ -197,7 +154,7 @@ export default function AdminResidentsPage() {
                     </span>
                   </td>
                   <td className="py-4 px-5">
-                    <span className={`px - 2 py - 1 rounded - full text - xs font - bold ${statusColors[r.status]} `}>{r.status}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${statusColors[r.status]}`}>{r.status}</span>
                   </td>
                   <td className="py-4 px-5 text-right">
                     {r.status === "ACTIVE" && (
@@ -236,7 +193,7 @@ export default function AdminResidentsPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Current Due Date</span>
-                <span className={`font - medium ${isOverdue(renewModal.resident.dueDate) ? 'text-red-400' : 'text-white'} `}>
+                <span className={`font-medium ${isOverdue(renewModal.resident.dueDate) ? 'text-red-400' : 'text-white'}`}>
                   {new Date(renewModal.resident.dueDate).toLocaleDateString()}
                   {isOverdue(renewModal.resident.dueDate) && " (OVERDUE)"}
                 </span>

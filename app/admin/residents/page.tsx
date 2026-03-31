@@ -9,7 +9,7 @@ export default function AdminResidentsPage() {
 
   // Renew modal state
   const [renewModal, setRenewModal] = useState<{ open: boolean; resident: any | null }>({ open: false, resident: null });
-  const [renewForm, setRenewForm] = useState({ extensionDuration: "WEEKLY", extensionCount: 1 });
+  const [renewForm, setRenewForm] = useState<{ extensionDuration: string, extensionCount: number | string }>({ extensionDuration: "WEEKLY", extensionCount: 1 });
   const [renewing, setRenewing] = useState(false);
 
   useEffect(() => { fetchResidents(); }, []);
@@ -45,7 +45,7 @@ export default function AdminResidentsPage() {
         body: JSON.stringify({
           action: "RENEW",
           extensionDuration: renewForm.extensionDuration,
-          extensionCount: Number(renewForm.extensionCount),
+          extensionCount: Math.max(1, Number(renewForm.extensionCount) || 1),
         }),
       });
       setRenewModal({ open: false, resident: null });
@@ -217,7 +217,7 @@ export default function AdminResidentsPage() {
                   Number of {renewForm.extensionDuration === "DAILY" ? "Days" : renewForm.extensionDuration === "WEEKLY" ? "Weeks" : "Months"}
                 </label>
                 <input type="number" min="1" value={renewForm.extensionCount}
-                  onChange={(e) => setRenewForm({ ...renewForm, extensionCount: Math.max(1, parseInt(e.target.value) || 1) })}
+                  onChange={(e) => setRenewForm({ ...renewForm, extensionCount: e.target.value })}
                   className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors" />
               </div>
             </div>
@@ -234,7 +234,7 @@ export default function AdminResidentsPage() {
                 className="flex-1 py-3 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white font-medium text-sm hover:bg-[rgba(255,255,255,0.08)] transition">
                 Cancel
               </button>
-              <button onClick={handleRenew} disabled={renewing}
+              <button onClick={handleRenew} disabled={renewing || renewForm.extensionCount === "" || Number(renewForm.extensionCount) < 1}
                 className="flex-1 py-3 rounded-xl bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-sm disabled:opacity-50 shadow-[0_10px_30px_rgba(255,122,26,0.25)] hover:scale-[1.01] transition-transform flex items-center justify-center gap-2">
                 <CheckCircle size={16} /> {renewing ? "Extending..." : "Confirm Extension"}
               </button>

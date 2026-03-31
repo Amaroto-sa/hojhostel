@@ -10,6 +10,7 @@ export default async function AdminDashboardOverview() {
   let totalResidents = 0;
   let pendingComplaints = 0;
   let unreadInquiries = 0;
+  let totalRevenue = 0;
 
   let recentPending: any[] = [];
   let recentInquiries: any[] = [];
@@ -22,6 +23,12 @@ export default async function AdminDashboardOverview() {
     totalResidents = await prisma.resident.count({ where: { status: "ACTIVE" } });
     pendingComplaints = await prisma.complaint.count({ where: { status: "PENDING" } });
     unreadInquiries = await prisma.inquiry.count({ where: { status: "UNREAD" } });
+
+    const confirmedBookings = await prisma.booking.findMany({
+      where: { status: { in: ["APPROVED", "COMPLETED", "ACTIVE"] as any } },
+      select: { totalPrice: true }
+    });
+    totalRevenue = confirmedBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
 
     recentPending = await prisma.booking.findMany({
       where: { status: "PENDING" },
@@ -60,12 +67,13 @@ export default async function AdminDashboardOverview() {
       <p className="text-[#b1b1ba] mb-10">Overview of house, listings, and resident occupancy.</p>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        <StatCard title="Total Revenue" value={`₦${totalRevenue.toLocaleString()}`} description="From approved bookings" isCurrency={true} />
         <StatCard title="Total Listings" value={totalListings} description="Apartments & bed spaces" />
         <StatCard title="Active Residents" value={totalResidents} description="Currently checked in" />
-        <StatCard title="Pending Bookings" value={pendingRequests} description="Requires approval" alert={pendingRequests > 0} />
-        <StatCard title="Pending Complaints" value={pendingComplaints} description="Reported issues" alert={pendingComplaints > 0} />
-        <StatCard title="Unread Inquiries" value={unreadInquiries} description="New contact msgs" alert={unreadInquiries > 0} />
+        <StatCard title="Pending Bookings" value={pendingRequests as any} description="Requires approval" alert={pendingRequests > 0} />
+        <StatCard title="Pending Complaints" value={pendingComplaints as any} description="Reported issues" alert={pendingComplaints > 0} />
+        <StatCard title="Unread Inquiries" value={unreadInquiries as any} description="New contact msgs" alert={unreadInquiries > 0} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -180,13 +188,14 @@ export default async function AdminDashboardOverview() {
   );
 }
 
-function StatCard({ title, value, description, alert = false }: { title: string, value: number, description: string, alert?: boolean }) {
+function StatCard({ title, value, description, alert = false, isCurrency = false }: { title: string, value: number | string, description: string, alert?: boolean, isCurrency?: boolean }) {
+  const isAlertActive = alert && (typeof value === 'number' ? value > 0 : false);
   return (
-    <div className={`p-6 rounded-2xl border ${alert && value > 0 ? 'border-[#ff7a1a]/30 bg-[rgba(255,122,26,0.08)]' : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)]'} relative overflow-hidden`}>
+    <div className={`p-6 rounded-2xl border ${isAlertActive ? 'border-[#ff7a1a]/30 bg-[rgba(255,122,26,0.08)]' : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)]'} relative overflow-hidden`}>
       <h3 className="text-gray-400 text-sm font-medium mb-1">{title}</h3>
-      <div className={`text-4xl font-display font-bold ${alert && value > 0 ? 'text-[#ff7a1a]' : 'text-white'} mb-2`}>{value}</div>
+      <div className={`text-4xl font-display font-bold ${isAlertActive || isCurrency ? 'text-[#ff7a1a]' : 'text-white'} mb-2`}>{value}</div>
       <p className="text-xs text-[#b1b1ba]">{description}</p>
-      {alert && value > 0 && <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-[#ff7a1a] animate-pulse"></div>}
+      {isAlertActive && <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-[#ff7a1a] animate-pulse"></div>}
     </div>
   );
 }

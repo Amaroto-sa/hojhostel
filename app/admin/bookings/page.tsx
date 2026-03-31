@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Clock, Eye } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Eye, Search } from "lucide-react";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => { fetchBookings(); }, []);
 
@@ -25,7 +26,20 @@ export default function AdminBookingsPage() {
     fetchBookings();
   }
 
-  const filtered = filter === "all" ? bookings : bookings.filter((b: any) => b.status === filter);
+  const filtered = bookings.filter((b: any) => {
+    const matchesFilter = filter === "all" || b.status === filter;
+
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      b.residentName?.toLowerCase().includes(q) ||
+      b.residentEmail?.toLowerCase().includes(q) ||
+      b.user?.email?.toLowerCase().includes(q) ||
+      b.residentPhone?.includes(q) ||
+      b.listing?.title?.toLowerCase().includes(q) ||
+      b.listing?.house?.name?.toLowerCase().includes(q);
+
+    return matchesFilter && matchesSearch;
+  });
 
   const statusColors: Record<string, string> = {
     PENDING: "text-yellow-400 bg-yellow-500/10",
@@ -42,13 +56,31 @@ export default function AdminBookingsPage() {
           <h1 className="font-display text-3xl text-white">Booking Management</h1>
           <p className="text-[#b1b1ba] text-sm mt-1">Review, approve, or reject booking requests.</p>
         </div>
-        <div className="flex gap-2">
-          {["all", "PENDING", "APPROVED", "REJECTED"].map((f) => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition ${filter === f ? 'bg-[#ff7a1a] text-[#111]' : 'bg-[rgba(255,255,255,0.05)] text-[#b1b1ba] border border-[rgba(255,255,255,0.08)]'}`}>
-              {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
-            </button>
-          ))}
+
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          {/* Search Bar */}
+          <div className="relative w-full sm:w-[250px]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={16} className="text-gray-500" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search bookings..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-[#ff7a1a] transition-all placeholder:text-gray-500"
+            />
+          </div>
+
+          {/* Status Tabs */}
+          <div className="flex gap-2 w-full sm:w-auto overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+            {["all", "PENDING", "APPROVED", "REJECTED"].map((f) => (
+              <button key={f} onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${filter === f ? 'bg-[#ff7a1a] text-[#111]' : 'bg-[rgba(255,255,255,0.05)] text-[#b1b1ba] border border-[rgba(255,255,255,0.08)]'}`}>
+                {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -56,7 +88,11 @@ export default function AdminBookingsPage() {
         {loading ? (
           <div className="glass p-10 text-center text-gray-500">Loading bookings...</div>
         ) : filtered.length === 0 ? (
-          <div className="glass p-10 text-center text-gray-500">No {filter !== "all" ? filter.toLowerCase() : ""} bookings found.</div>
+          <div className="glass p-12 text-center flex flex-col items-center">
+            <Search size={32} className="text-white/10 mb-3" />
+            <p className="text-gray-400 font-medium">No {filter !== "all" ? filter.toLowerCase() : ""} bookings found.</p>
+            {searchQuery && <p className="text-gray-600 text-sm mt-1">Try wiping your search string.</p>}
+          </div>
         ) : (
           filtered.map((booking: any) => (
             <div key={booking.id} className="glass p-6 hover:border-[rgba(255,255,255,0.15)] transition">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw, Search, User, Home, Filter } from "lucide-react";
 
 export default function AdminResidentsPage() {
   const [residents, setResidents] = useState<any[]>([]);
@@ -11,6 +11,10 @@ export default function AdminResidentsPage() {
   const [renewModal, setRenewModal] = useState<{ open: boolean; resident: any | null }>({ open: false, resident: null });
   const [renewForm, setRenewForm] = useState<{ extensionDuration: string, extensionCount: number | string }>({ extensionDuration: "WEEKLY", extensionCount: 1 });
   const [renewing, setRenewing] = useState(false);
+
+  // Search and Filtering state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => { fetchResidents(); }, []);
 
@@ -85,11 +89,61 @@ export default function AdminResidentsPage() {
     MOVED_OUT: "text-blue-400 bg-blue-500/10",
   };
 
+  const filteredResidents = residents.filter(r => {
+    // Status matching
+    const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
+
+    // Search matching (Name, email, phone, or accommodation)
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      r.name?.toLowerCase().includes(q) ||
+      r.email?.toLowerCase().includes(q) ||
+      r.phone?.includes(q) ||
+      r.listing?.title?.toLowerCase().includes(q) ||
+      r.listing?.house?.name?.toLowerCase().includes(q);
+
+    return matchesStatus && matchesSearch;
+  });
+
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="font-display text-3xl text-white">Resident Management</h1>
-        <p className="text-[#b1b1ba] text-sm mt-1">Track current residents, due dates, and renewals.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div>
+          <h1 className="font-display text-3xl text-white">Resident Management</h1>
+          <p className="text-[#b1b1ba] text-sm mt-1">Track current residents, due dates, and renewals.</p>
+        </div>
+
+        {/* Search and Filter Controls */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={16} className="text-gray-500" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search residents..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full sm:w-[250px] bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff7a1a] transition-all placeholder:text-gray-500"
+            />
+          </div>
+
+          <div className="relative shrink-0">
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="appearance-none w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl pl-10 pr-8 py-2.5 text-sm text-[#b1b1ba] focus:outline-none focus:border-[#ff7a1a] transition-all cursor-pointer"
+            >
+              <option value="ALL">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="OVERDUE">Overdue</option>
+              <option value="MOVED_OUT">Moved Out</option>
+            </select>
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Filter size={14} className="text-gray-500" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Due Date Alerts */}
@@ -131,10 +185,18 @@ export default function AdminResidentsPage() {
           <tbody>
             {loading ? (
               <tr><td colSpan={6} className="py-10 text-center text-gray-500">Loading...</td></tr>
-            ) : residents.length === 0 ? (
-              <tr><td colSpan={6} className="py-10 text-center text-gray-500">No residents found.</td></tr>
+            ) : filteredResidents.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="py-12">
+                  <div className="text-center flex flex-col items-center">
+                    <Search size={32} className="text-white/10 mb-3" />
+                    <p className="text-gray-400 font-medium">No residents found</p>
+                    {searchQuery && <p className="text-gray-600 text-sm mt-1">Try adjusting your search query.</p>}
+                  </div>
+                </td>
+              </tr>
             ) : (
-              residents.map((r: any) => (
+              filteredResidents.map((r: any) => (
                 <tr key={r.id} className="border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.02)]">
                   <td className="py-4 px-5">
                     <span className="font-medium text-white block">{r.name}</span>

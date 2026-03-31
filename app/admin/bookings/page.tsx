@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Clock, Eye, Search } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Eye, Search, Download } from "lucide-react";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -41,6 +41,30 @@ export default function AdminBookingsPage() {
     return matchesFilter && matchesSearch;
   });
 
+  function exportCSV() {
+    const headers = ["Resident Name", "Email", "Phone", "Accommodation", "Check In", "Duration", "Status", "Total Price"];
+    const rows = filtered.map(b => [
+      `"${(b.residentName || '').replace(/"/g, '""')}"`,
+      `"${(b.residentEmail || b.user?.email || '').replace(/"/g, '""')}"`,
+      `"${b.residentPhone || ''}"`,
+      `"${(b.listing?.title || '').replace(/"/g, '""')}"`,
+      `"${new Date(b.checkInDate).toLocaleDateString()}"`,
+      `"${b.durationCount} ${b.duration}"`,
+      `"${b.status}"`,
+      `"${b.totalPrice || 0}"`
+    ]);
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `hoj_bookings_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   const statusColors: Record<string, string> = {
     PENDING: "text-yellow-400 bg-yellow-500/10",
     APPROVED: "text-green-400 bg-green-500/10",
@@ -58,6 +82,12 @@ export default function AdminBookingsPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          {filtered.length > 0 && (
+            <button onClick={exportCSV} title="Export to CSV" className="shrink-0 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm hover:bg-white/10 transition">
+              <Download size={16} />
+            </button>
+          )}
+
           {/* Search Bar */}
           <div className="relative w-full sm:w-[250px]">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

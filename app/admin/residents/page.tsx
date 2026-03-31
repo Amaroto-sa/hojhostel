@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw, Search, User, Home, Filter } from "lucide-react";
+import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw, Search, User, Home, Filter, Download, MessageCircle } from "lucide-react";
 
 export default function AdminResidentsPage() {
   const [residents, setResidents] = useState<any[]>([]);
@@ -105,6 +105,29 @@ export default function AdminResidentsPage() {
     return matchesStatus && matchesSearch;
   });
 
+  function exportCSV() {
+    const headers = ["Resident Name", "Email", "Phone", "Accommodation", "Check In", "Due Date", "Status"];
+    const rows = filteredResidents.map(r => [
+      `"${(r.name || '').replace(/"/g, '""')}"`,
+      `"${(r.email || '').replace(/"/g, '""')}"`,
+      `"${r.phone || ''}"`,
+      `"${(r.listing?.title || '').replace(/"/g, '""')}"`,
+      `"${new Date(r.checkInDate).toLocaleDateString()}"`,
+      `"${new Date(r.dueDate).toLocaleDateString()}"`,
+      `"${r.status}"`
+    ]);
+    const csvContent = [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `hoj_residents_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
@@ -113,8 +136,11 @@ export default function AdminResidentsPage() {
           <p className="text-[#b1b1ba] text-sm mt-1">Track current residents, due dates, and renewals.</p>
         </div>
 
-        {/* Search and Filter Controls */}
+        {/* Search, Filter, and Export Controls */}
         <div className="flex flex-col sm:flex-row gap-3">
+          <button onClick={exportCSV} title="Export to CSV" className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm hover:bg-white/10 transition">
+            <Download size={16} /> Export
+          </button>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search size={16} className="text-gray-500" />
@@ -221,6 +247,14 @@ export default function AdminResidentsPage() {
                   <td className="py-4 px-5 text-right">
                     {r.status === "ACTIVE" && (
                       <div className="flex items-center justify-end gap-2">
+                        {(isOverdue(r.dueDate) || isDueSoon(r.dueDate)) && r.phone && (
+                          <a href={`https://wa.me/${r.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${r.name}, this is a gentle reminder from House of Jesse Hostel regarding your stay at ${r.listing?.title || 'our hostel'}. Your rent is ${isOverdue(r.dueDate) ? '*currently OVERDUE*' : '*DUE SOON*'} (Due Date: ${new Date(r.dueDate).toDateString()}). Please check in with administration and renew your stay to avoid inconveniences. Thank you!`)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            title="Send WhatsApp Reminder"
+                            className="p-2 mr-1 rounded-lg bg-[rgba(255,122,26,0.1)] hover:bg-[rgba(255,122,26,0.2)] transition text-[#ff7a1a]">
+                            <MessageCircle size={16} />
+                          </a>
+                        )}
                         <button onClick={() => openRenewModal(r)} title="Renew / Extend Stay"
                           className="px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 font-medium text-xs hover:bg-green-500/20 transition flex items-center gap-1">
                           <RefreshCw size={14} /> Renew

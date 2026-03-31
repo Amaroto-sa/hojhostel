@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw, Search, User, Home, Filter, Download, MessageCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw, Search, User, Home, Filter, Download, MessageCircle, Phone, Mail } from "lucide-react";
 
 export default function AdminResidentsPage() {
   const [residents, setResidents] = useState<any[]>([]);
@@ -246,21 +246,39 @@ export default function AdminResidentsPage() {
                   </td>
                   <td className="py-4 px-5 text-right">
                     {r.status === "ACTIVE" && (
-                      <div className="flex items-center justify-end gap-2">
-                        {(isOverdue(r.dueDate) || isDueSoon(r.dueDate)) && r.phone && (
-                          <a href={`https://wa.me/${r.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${r.name}, this is a gentle reminder from House of Jesse Hostel regarding your stay at ${r.listing?.title || 'our hostel'}. Your rent is ${isOverdue(r.dueDate) ? '*currently OVERDUE*' : '*DUE SOON*'} (Due Date: ${new Date(r.dueDate).toDateString()}). Please check in with administration and renew your stay to avoid inconveniences. Thank you!`)}`}
-                            target="_blank" rel="noopener noreferrer"
-                            title="Send WhatsApp Reminder"
-                            className="p-2 mr-1 rounded-lg bg-[rgba(255,122,26,0.1)] hover:bg-[rgba(255,122,26,0.2)] transition text-[#ff7a1a]">
-                            <MessageCircle size={16} />
-                          </a>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {(isOverdue(r.dueDate) || isDueSoon(r.dueDate)) && (
+                          <div className="flex gap-1.5 mr-2 pr-2 border-r border-white/10">
+                            {r.phone && (
+                              <>
+                                <a href={`https://wa.me/${r.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${r.name}, this is a gentle reminder from House of Jesse Hostel regarding your stay at ${r.listing?.title || 'our hostel'}. Your rent is ${isOverdue(r.dueDate) ? '*currently OVERDUE*' : '*DUE SOON*'} (Due Date: ${new Date(r.dueDate).toDateString()}). Please check in with administration and renew your stay to avoid inconveniences. Thank you!`)}`}
+                                  target="_blank" rel="noopener noreferrer"
+                                  title="WhatsApp Reminder"
+                                  className="p-1.5 rounded-lg bg-[#25D366]/10 hover:bg-[#25D366]/20 transition text-[#25D366]">
+                                  <MessageCircle size={15} />
+                                </a>
+                                <a href={`tel:${r.phone}`}
+                                  title="Call Resident"
+                                  className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition text-blue-400">
+                                  <Phone size={15} />
+                                </a>
+                              </>
+                            )}
+                            {r.email && (
+                              <a href={`mailto:${r.email}?subject=${encodeURIComponent('Rent Reminder - House of Jesse Hostel')}&body=${encodeURIComponent(`Hi ${r.name},\n\nThis is a gentle reminder from House of Jesse Hostel regarding your stay at ${r.listing?.title || 'our hostel'}. Your rent is ${isOverdue(r.dueDate) ? 'currently OVERDUE' : 'DUE SOON'} (Due Date: ${new Date(r.dueDate).toDateString()}).\n\nPlease check in with administration and renew your stay to avoid inconveniences.\n\nThank you!`)}`}
+                                title="Email Reminder"
+                                className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 transition text-indigo-400">
+                                <Mail size={15} />
+                              </a>
+                            )}
+                          </div>
                         )}
                         <button onClick={() => openRenewModal(r)} title="Renew / Extend Stay"
                           className="px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 font-medium text-xs hover:bg-green-500/20 transition flex items-center gap-1">
                           <RefreshCw size={14} /> Renew
                         </button>
                         <button onClick={() => updateStatus(r.id, "MOVED_OUT")} title="Mark moved out"
-                          className="p-2 rounded-lg hover:bg-blue-500/10"><MoveOut size={16} className="text-blue-400" /></button>
+                          className="p-2 rounded-lg hover:bg-red-500/10"><MoveOut size={16} className="text-red-400" /></button>
                       </div>
                     )}
                   </td>

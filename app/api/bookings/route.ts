@@ -139,7 +139,7 @@ export async function POST(request: Request) {
     };
 
     // Fetch dynamic admin email from settings
-    const adminEmailSetting = await prisma.setting.findUnique({ where: { key: "contact_email" } });
+    const adminEmailSetting = await prisma.setting.findUnique({ where: { key: "notification_email" } });
     const notifyAdminEmail = adminEmailSetting?.value || process.env.ADMIN_EMAIL || "houseofjessehostel@gmail.com";
 
     // Notify admin via Email

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { bookingSchema } from "@/lib/validations";
 import { calculateDueDate } from "@/lib/due-date";
 import { sendEmail, bookingSubmisionEmail, adminBookingNotificationEmail, sendTelegramNotification } from "@/lib/email";
+import { isIpRateLimited } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   try {
@@ -45,6 +46,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    if (isIpRateLimited(ip)) {
+      return NextResponse.json({ error: "Requests severely rate-limited. Please wait a minute before requesting another booking." }, { status: 429 });
+    }
+
     const session = await getServerSession(authOptions);
 
     // Check if guest booking is enabled
@@ -81,12 +87,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "This accommodation is fully occupied" }, { status: 400 });
     }
 
-    // Calculate total price
     let totalPrice = listing.price * data.durationCount;
     if (data.duration === "MONTHLY") {
       totalPrice = listing.price * 4 * data.durationCount; // Approx 4 weeks per month
     } else if (data.duration === "DAILY") {
       totalPrice = (listing.price / 7) * data.durationCount;
+    }
+
+    // Deep DB Check: Stop accidental dual-clicks or deliberate duplicate spam
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const existingSpamBooking = await prisma.booking.findFirst({
+      where: {
+        listingId: data.listingId,
+        residentName: data.residentName,
+        createdAt: { gte: fifteenMinsAgo }
+      }
+    });
+
+    if (existingSpamBooking) {
+      return NextResponse.json({ error: "You recently requested this identical space. Please wait for host approval or check your email." }, { status: 429 });
     }
 
     const booking = await prisma.booking.create({

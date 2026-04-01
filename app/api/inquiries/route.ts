@@ -3,9 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { sendEmail, sendTelegramNotification } from "@/lib/email";
+import { isIpRateLimited } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
     try {
+        const ip = request.headers.get("x-forwarded-for") || "unknown";
+        if (isIpRateLimited(ip)) {
+            return NextResponse.json({ error: "Too many requests. Please wait a minute before trying again." }, { status: 429 });
+        }
         const body = await request.json();
         const { name, email, phone, subject, message, captchaAnswer, captchaInput } = body;
 
@@ -31,6 +36,19 @@ export async function POST(request: Request) {
 
         if (!sanitizedData.name || !sanitizedData.email || !sanitizedData.subject || !sanitizedData.message) {
             return NextResponse.json({ error: "Missing required fields or invalid input" }, { status: 400 });
+        }
+
+        // Deep Database Rate Limiting: Prevent duplicate spam from the same person
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const spamCheck = await prisma.inquiry.count({
+            where: {
+                email: sanitizedData.email,
+                createdAt: { gte: fiveMinutesAgo }
+            }
+        });
+
+        if (spamCheck >= 2) {
+            return NextResponse.json({ error: "We have already received your inquiry. Please wait before submitting another one." }, { status: 429 });
         }
 
         const inquiry = await prisma.inquiry.create({

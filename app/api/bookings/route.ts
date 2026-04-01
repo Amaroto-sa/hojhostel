@@ -138,9 +138,13 @@ export async function POST(request: Request) {
       isVerified: isVerified,
     };
 
+    // Fetch dynamic admin email from settings
+    const adminEmailSetting = await prisma.setting.findUnique({ where: { key: "contact_email" } });
+    const notifyAdminEmail = adminEmailSetting?.value || process.env.ADMIN_EMAIL || "houseofjessehostel@gmail.com";
+
     // Notify admin via Email
-    const adminEmail = adminBookingNotificationEmail(notificationDetails);
-    await sendEmail({ to: "houseofjessehostel@gmail.com", ...adminEmail, type: "admin_notification" });
+    const adminEmailOut = adminBookingNotificationEmail(notificationDetails);
+    await sendEmail({ to: notifyAdminEmail, ...adminEmailOut, type: "admin_notification" });
 
     // Notify admin via Telegram (optional, admin-only alerts)
     const telegramMsg = `

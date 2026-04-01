@@ -102,7 +102,7 @@ export default async function AdminDashboardOverview() {
         Overview of house, listings, and resident occupancy.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
         <StatCard
           title="Total Revenue"
           value={`₦${estimatedRevenue.toLocaleString()}`}
@@ -232,8 +232,8 @@ export default async function AdminDashboardOverview() {
                     <div
                       key={inq.id}
                       className={`p-4 rounded-xl border ${inq.status === "UNREAD"
-                          ? "border-[#ff7a1a]/30 bg-[rgba(255,122,26,0.05)]"
-                          : "border-white/5 bg-white/5"
+                        ? "border-[#ff7a1a]/30 bg-[rgba(255,122,26,0.05)]"
+                        : "border-white/5 bg-white/5"
                         }`}
                     >
                       <div className="flex justify-between mb-1">
@@ -286,8 +286,8 @@ export default async function AdminDashboardOverview() {
                       <div
                         key={booking.id}
                         className={`p-4 rounded-xl border flex flex-col ${isToday
-                            ? "border-green-500/30 bg-green-500/5"
-                            : "border-blue-500/20 bg-blue-500/5"
+                          ? "border-green-500/30 bg-green-500/5"
+                          : "border-blue-500/20 bg-blue-500/5"
                           }`}
                       >
                         <div className="flex justify-between mb-1">
@@ -352,8 +352,8 @@ export default async function AdminDashboardOverview() {
                   <div
                     key={resident.id}
                     className={`p-4 rounded-xl border ${isOverdue
-                        ? "border-red-500/30 bg-red-500/5"
-                        : "border-[#ff7a1a]/20 bg-[rgba(255,122,26,0.05)]"
+                      ? "border-red-500/30 bg-red-500/5"
+                      : "border-[#ff7a1a]/20 bg-[rgba(255,122,26,0.05)]"
                       } flex flex-col`}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -362,8 +362,8 @@ export default async function AdminDashboardOverview() {
                       </strong>
                       <span
                         className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 font-bold ${isOverdue
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-[#ff7a1a]/20 text-[#ff7a1a]"
+                          ? "bg-red-500/20 text-red-400"
+                          : "bg-[#ff7a1a]/20 text-[#ff7a1a]"
                           }`}
                       >
                         {isOverdue ? "OVERDUE" : "DUE SOON"}
@@ -422,14 +422,15 @@ function StatCard({
   return (
     <div
       className={`p-6 rounded-2xl border ${showAlert
-          ? "border-[#ff7a1a]/30 bg-[rgba(255,122,26,0.08)]"
-          : "border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)]"
-        } relative overflow-hidden`}
+        ? "border-[#ff7a1a]/30 bg-[rgba(255,122,26,0.08)]"
+        : "border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)]"
+        } relative overflow-hidden flex flex-col justify-center`}
     >
       <h3 className="text-gray-400 text-sm font-medium mb-1">{title}</h3>
       <div
-        className={`text-4xl font-display font-bold ${showAlert ? "text-[#ff7a1a]" : "text-white"
-          } mb-2`}
+        className={`text-3xl lg:text-4xl font-display font-bold ${showAlert ? "text-[#ff7a1a]" : "text-white"
+          } mb-2 truncate`}
+        title={String(value)}
       >
         {value}
       </div>

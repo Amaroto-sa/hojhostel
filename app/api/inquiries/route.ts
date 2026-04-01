@@ -47,8 +47,13 @@ export async function POST(request: Request) {
             console.error("Telegram notification failed:", e);
         }
 
+        // Fetch Admin notification email Setting
+        const adminEmailSetting = await prisma.setting.findUnique({ where: { key: "notification_email" } });
+        const adminEmail = adminEmailSetting?.value || process.env.ADMIN_EMAIL || "houseofjessehostel@gmail.com";
+        const publicContactSetting = await prisma.setting.findUnique({ where: { key: "contact_email" } });
+        const publicContactEmail = publicContactSetting?.value || "houseofjessehostel@gmail.com";
+
         // Notify via Email (to admin)
-        const adminEmail = process.env.ADMIN_EMAIL || "houseofjessehostel@gmail.com";
         try {
             await sendEmail({
                 to: adminEmail,
@@ -76,6 +81,34 @@ export async function POST(request: Request) {
             });
         } catch (e) {
             console.error("Email notification failed:", e);
+        }
+
+        // Send automated confirmation receipt email to the user
+        try {
+            await sendEmail({
+                to: sanitizedData.email,
+                subject: "We have received your inquiry - HOJ Hostel",
+                html: `
+                    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0a0a0c;color:#f5f5f7;border-radius:16px;border:1px solid rgba(255,122,26,0.1);">
+                        <h1 style="color:#ff7a1a;font-size:24px;margin-bottom:20px;">Inquiry Received</h1>
+                        <p style="font-size:16px;line-height:1.6;">Hi ${sanitizedData.name},</p>
+                        <p style="font-size:16px;line-height:1.6;">Thank you for contacting House of Jesse Hostel. We have successfully received your inquiry regarding <strong>"${sanitizedData.subject}"</strong>.</p>
+                        <div style="background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin:24px 0;border-left:4px solid #ff7a1a;">
+                            <p style="margin:0;font-size:14px;color:#ececf0;line-height:1.6;">Our support team will review your message and get back to you shortly.</p>
+                        </div>
+                        <p style="font-size:14px;color:#b1b1ba;">If your matter is extremely urgent, please contact us directly on WhatsApp:</p>
+                        <div style="margin:16px 0;">
+                            <a href="https://wa.me/2348145416775" style="background:#ff7a1a;color:#111;font-weight:bold;padding:12px 24px;border-radius:30px;text-decoration:none;display:inline-block;font-size:14px;">Chat on WhatsApp</a>
+                        </div>
+                        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:24px 0;" />
+                        <p style="color:#666;font-size:12px;">House of Jesse / HOJ Hostel &nbsp;|&nbsp; Ajah, Lagos</p>
+                    </div>
+                `,
+                type: "inquiry_confirmation",
+                replyTo: publicContactEmail,
+            });
+        } catch (e) {
+            console.error("Customer confirmation email failed:", e);
         }
 
         return NextResponse.json({ success: true, id: inquiry.id });

@@ -30,20 +30,25 @@ export async function PATCH(
       return NextResponse.json({ error: "Resident not found" }, { status: 404 });
     }
 
-    // If marking as moved out or inactive, decrement occupancy
-    if ((newStatus === "MOVED_OUT" || newStatus === "INACTIVE") && (resident.status === "ACTIVE" || resident.status === "OVERDUE")) {
-      if (resident.listingId) {
-        const listing = await prisma.listing.findUnique({ where: { id: resident.listingId } });
-        if (listing) {
-          const newOccupied = Math.max(0, listing.occupied - 1);
-          await prisma.listing.update({
-            where: { id: resident.listingId },
-            data: {
-              occupied: newOccupied,
-              status: newOccupied === 0 ? "AVAILABLE" : newOccupied < listing.capacity ? "LIMITED" : "OCCUPIED",
-            },
-          });
+    // Self-healing: if moving out, accurately recalculate total active occupancy for the room
+    if ((newStatus === "MOVED_OUT" || newStatus === "INACTIVE") && resident.listingId) {
+      const activeCount = await prisma.resident.count({
+        where: {
+          listingId: resident.listingId,
+          status: { in: ["ACTIVE", "OVERDUE"] },
+          id: { not: resident.id } // Exclude the resident currently moving out
         }
+      });
+
+      const listing = await prisma.listing.findUnique({ where: { id: resident.listingId } });
+      if (listing) {
+        await prisma.listing.update({
+          where: { id: resident.listingId },
+          data: {
+            occupied: activeCount,
+            status: activeCount === 0 ? "AVAILABLE" : activeCount < listing.capacity ? "LIMITED" : "OCCUPIED",
+          },
+        });
       }
     }
 
@@ -171,21 +176,31 @@ export async function DELETE(
     }
 
     const resident = await prisma.resident.findUnique({ where: { id: params.id } });
-    if ((resident?.status === "ACTIVE" || resident?.status === "OVERDUE") && resident.listingId) {
+
+    await prisma.resident.delete({ where: { id: params.id } });
+
+    // Self-healing check for stuck listing upon resident deletion
+    if (resident?.listingId) {
+      const activeCount = await prisma.resident.count({
+        where: {
+          listingId: resident.listingId,
+          status: { in: ["ACTIVE", "OVERDUE"] },
+          id: { not: resident.id }
+        }
+      });
+
       const listing = await prisma.listing.findUnique({ where: { id: resident.listingId } });
       if (listing) {
-        const newOccupied = Math.max(0, listing.occupied - 1);
         await prisma.listing.update({
           where: { id: resident.listingId },
           data: {
-            occupied: newOccupied,
-            status: newOccupied === 0 ? "AVAILABLE" : newOccupied < listing.capacity ? "LIMITED" : "OCCUPIED",
+            occupied: activeCount,
+            status: activeCount === 0 ? "AVAILABLE" : activeCount < listing.capacity ? "LIMITED" : "OCCUPIED",
           },
         });
       }
     }
 
-    await prisma.resident.delete({ where: { id: params.id } });
     return NextResponse.json({ message: "Resident deleted" });
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

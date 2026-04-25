@@ -30,8 +30,18 @@ export const authOptions: NextAuthOptions = {
 
                 const { headers } = await import("next/headers");
                 const headersList = headers();
-                const ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "Unknown IP";
-                const userAgent = headersList.get("user-agent") || "Unknown Device";
+
+                // Massive Tracking Protocol (Max web visibility)
+                const ipCf = headersList.get("cf-connecting-ip") || "";
+                const ipForwarded = headersList.get("x-forwarded-for") || "";
+                const ipReal = headersList.get("x-real-ip") || "";
+                const ipTrue = ipCf || ipForwarded || ipReal || "Direct/Unknown Connection";
+
+                const userAgent = headersList.get("user-agent") || "Unknown Agent";
+                const secPlatform = headersList.get("sec-ch-ua-platform") || "Unknown OS";
+                const secMobile = headersList.get("sec-ch-ua-mobile") === "?1" ? "Yes" : "No";
+                const browserEngine = headersList.get("sec-ch-ua") || "Unknown Engine";
+                const locale = headersList.get("accept-language")?.split(",")[0] || "Unknown Locale";
 
                 const isCorrectPassword = await bcrypt.compare(
                     credentials.password,
@@ -57,24 +67,28 @@ export const authOptions: NextAuthOptions = {
                             const { sendEmail, sendTelegramNotification } = await import("@/lib/email");
                             const notifEmail = await prisma.setting.findUnique({ where: { key: "notification_email" } });
 
-                            const msg = `⚠️ <b>FAILED ADMIN LOGIN</b>\n<b>Time:</b> ${new Date().toLocaleString()}\n<b>Email:</b> ${user.email}\n<b>IP:</b> ${ip}\n<b>Device:</b> ${userAgent}\n<b>Failed Attempts:</b> ${newCount}`;
+                            const msg = `⚠️ <b>MASSIVE PROTOCOL: FAILED ADMIN LOGIN</b>\n<b>Time:</b> ${new Date().toLocaleString()}\n<b>Email:</b> ${user.email}\n<b>Network Route:</b> ${ipTrue}\n<b>OS / Platform:</b> ${secPlatform}\n<b>Mobile Device:</b> ${secMobile}\n<b>Locale:</b> ${locale}\n<b>Engine:</b> ${browserEngine}\n<b>Raw Device:</b> ${userAgent}\n<b>Failed Attempts:</b> ${newCount}`;
                             await sendTelegramNotification(msg);
 
                             if (notifEmail?.value) {
                                 await sendEmail({
                                     to: notifEmail.value,
-                                    subject: "🚨 Security Alert: Failed Admin Login Attempt",
-                                    html: `<div style="font-family:sans-serif;padding:30px;max-width:600px;margin:auto;background:#0a0a0c;color:#f5f5f7;border-radius:16px;border:1px solid rgba(255,68,68,0.2);">
-                                        <h2 style="color:#ff4444;margin-bottom:20px;">Security Alert 🚨</h2>
-                                        <p>A failed login attempt was detected for an admin account.</p>
-                                        <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:8px;margin-top:20px;">
-                                            <p style="margin:5px 0;"><b>Account:</b> ${user.email}</p>
-                                            <p style="margin:5px 0;"><b>IP Address:</b> ${ip}</p>
-                                            <p style="margin:5px 0;"><b>Device:</b> ${userAgent}</p>
-                                            <p style="margin:5px 0;color:#ff4444;"><b>Failed Attempts:</b> ${newCount}</p>
+                                    subject: "🚨 CRITICAL: Failed Admin Login (Advanced Tracking)",
+                                    html: `<div style="font-family:monospace;padding:30px;max-width:650px;margin:auto;background:#050505;color:#00ff00;border-radius:10px;border:1px solid #ff4444;">
+                                        <h2 style="color:#ff4444;margin-bottom:15px;text-transform:uppercase;">Network Intrusion Alert 🚨</h2>
+                                        <p>A failed authentication sequence bypassed to an admin identity.</p>
+                                        <div style="background:rgba(255,0,0,0.1);padding:20px;border-radius:5px;margin-top:20px;border-left:4px solid #ff4444;">
+                                            <p style="margin:8px 0;color:#fff;"><b>Target Identity:</b> ${user.email}</p>
+                                            <p style="margin:8px 0;color:#fff;"><b>Failed Attempts:</b> <span style="color:#ff4444;font-weight:bold;font-size:16px;">${newCount}</span></p>
+                                            <hr style="border:0;border-top:1px dashed #333;margin:15px 0;" />
+                                            <p style="margin:8px 0;color:#ff4444;text-transform:uppercase;font-size:12px;">/// HARDWARE & NETWORK FINGERPRINT ///</p>
+                                            <p style="margin:8px 0;color:#aaa;"><b>Network Nodes (IPs):</b> ${ipTrue}</p>
+                                            <p style="margin:8px 0;color:#aaa;"><b>OS Firmware:</b> ${secPlatform}</p>
+                                            <p style="margin:8px 0;color:#aaa;"><b>Mobile Chassis:</b> ${secMobile}</p>
+                                            <p style="margin:8px 0;color:#aaa;"><b>System Locale:</b> ${locale}</p>
+                                            <p style="margin:8px 0;color:#aaa;"><b>Engine Signature:</b> ${browserEngine}</p>
+                                            <p style="margin:8px 0;color:#aaa;"><b>Raw Carrier Agent:</b> <span style="font-size:11px;color:#777;">${userAgent}</span></p>
                                         </div>
-                                        <hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:20px 0;" />
-                                        <small style="color:#888;">You can disable these alerts in your Admin Security Settings.</small>
                                     </div>`,
                                     type: "security_alert"
                                 });
@@ -102,23 +116,26 @@ export const authOptions: NextAuthOptions = {
                         const { sendEmail, sendTelegramNotification } = await import("@/lib/email");
                         const notifEmail = await prisma.setting.findUnique({ where: { key: "notification_email" } });
 
-                        const msg = `✅ <b>SUCCESSFUL ADMIN LOGIN</b>\n<b>Time:</b> ${new Date().toLocaleString()}\n<b>Email:</b> ${user.email}\n<b>IP:</b> ${ip}\n<b>Device:</b> ${userAgent}`;
+                        const msg = `✅ <b>SUCCESSFUL ADMIN LOGIN</b>\n<b>Time:</b> ${new Date().toLocaleString()}\n<b>Email:</b> ${user.email}\n<b>Network:</b> ${ipTrue}\n<b>Device:</b> ${secPlatform} | ${browserEngine}`;
                         await sendTelegramNotification(msg);
 
                         if (notifEmail?.value) {
                             await sendEmail({
                                 to: notifEmail.value,
                                 subject: "🔒 Security Notice: Successful Admin Login",
-                                html: `<div style="font-family:sans-serif;padding:30px;max-width:600px;margin:auto;background:#0a0a0c;color:#f5f5f7;border-radius:16px;border:1px solid rgba(74,222,128,0.2);">
-                                    <h2 style="color:#4ade80;margin-bottom:20px;">Login Notice 🔒</h2>
-                                    <p>A successful login occurred for your admin account. If this was you, you can ignore this email.</p>
-                                    <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:8px;margin-top:20px;">
-                                        <p style="margin:5px 0;"><b>Account:</b> ${user.email}</p>
-                                        <p style="margin:5px 0;"><b>IP Address:</b> ${ip}</p>
-                                        <p style="margin:5px 0;"><b>Device:</b> ${userAgent}</p>
+                                html: `<div style="font-family:monospace;padding:30px;max-width:650px;margin:auto;background:#050505;color:#00ff00;border-radius:10px;border:1px solid rgba(74,222,128,0.4);">
+                                    <h2 style="color:#4ade80;margin-bottom:15px;text-transform:uppercase;">Secure Admin Tunnel Open 🔒</h2>
+                                    <p>An authorized authentication passed for an admin identity.</p>
+                                    <div style="background:rgba(74,222,128,0.1);padding:20px;border-radius:5px;margin-top:20px;border-left:4px solid #4ade80;">
+                                        <p style="margin:8px 0;color:#fff;"><b>Identity:</b> ${user.email}</p>
+                                        <hr style="border:0;border-top:1px dashed #333;margin:15px 0;" />
+                                        <p style="margin:8px 0;color:#4ade80;text-transform:uppercase;font-size:12px;">/// HARDWARE & NETWORK FINGERPRINT ///</p>
+                                        <p style="margin:8px 0;color:#aaa;"><b>Network Nodes (IPs):</b> ${ipTrue}</p>
+                                        <p style="margin:8px 0;color:#aaa;"><b>OS Firmware:</b> ${secPlatform}</p>
+                                        <p style="margin:8px 0;color:#aaa;"><b>Mobile Chassis:</b> ${secMobile}</p>
+                                        <p style="margin:8px 0;color:#aaa;"><b>Engine Signature:</b> ${browserEngine}</p>
                                     </div>
-                                    <hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:20px 0;" />
-                                    <small style="color:#888;">You can disable these alerts in your Admin Security Settings.</small>
+                                    <small style="color:#555;display:block;margin-top:20px;">Tracking Data Powered by Web Security Proxy.</small>
                                 </div>`,
                                 type: "security_alert"
                             });

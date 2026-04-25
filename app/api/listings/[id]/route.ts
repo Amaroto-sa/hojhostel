@@ -7,7 +7,7 @@ import { z } from "zod";
 // Partial schema for safe PATCH — only known listing fields are accepted
 const patchListingSchema = z.object({
   title: z.string().min(2).optional(),
-  type: z.enum(["BED_SPACE", "SINGLE_ROOM", "APARTMENT"]).optional(),
+  type: z.enum(["BED_SPACE", "SINGLE_ROOM", "PREMIUM_SINGLE_ROOM", "APARTMENT"]).optional(),
   price: z.number().min(0).optional(),
   capacity: z.number().min(1).optional(),
   description: z.string().optional(),
@@ -58,9 +58,25 @@ export async function PATCH(
       );
     }
 
+    const currentListing = await prisma.listing.findUnique({ where: { id: params.id } });
+    if (!currentListing) {
+      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+    }
+
+    // Auto-calculate new status if capacity is updated
+    let newStatus = validated.data.status || currentListing.status;
+    if (validated.data.capacity !== undefined) {
+      const occ = currentListing.occupied;
+      const cap = validated.data.capacity;
+      newStatus = occ === 0 ? "AVAILABLE" : occ < cap ? "LIMITED" : "OCCUPIED";
+    }
+
     const listing = await prisma.listing.update({
       where: { id: params.id },
-      data: validated.data,
+      data: {
+        ...validated.data,
+        status: newStatus,
+      },
     });
 
     return NextResponse.json(listing);

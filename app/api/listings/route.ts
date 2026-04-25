@@ -31,17 +31,17 @@ export async function GET(request: Request) {
 
     for (const listing of listings) {
       const realCount = activeCountsMap.get(listing.id) || 0;
-      if (listing.occupied !== realCount) {
-        // Fix stale occupancy
-        const newStatus = realCount === 0 ? "AVAILABLE" : realCount < listing.capacity ? "LIMITED" : "OCCUPIED";
+      const expectedStatus = realCount === 0 ? "AVAILABLE" : realCount < listing.capacity ? "LIMITED" : "OCCUPIED";
 
+      if (listing.occupied !== realCount || listing.status !== expectedStatus) {
+        // Fix stale occupancy and status
         await prisma.listing.update({
           where: { id: listing.id },
-          data: { occupied: realCount, status: newStatus }
+          data: { occupied: realCount, status: expectedStatus }
         });
 
         listing.occupied = realCount;
-        listing.status = newStatus;
+        listing.status = expectedStatus;
       }
     }
     return NextResponse.json(listings);

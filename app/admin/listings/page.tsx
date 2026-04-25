@@ -144,8 +144,8 @@ export default function AdminListingsPage() {
               <label className="block text-sm font-medium mb-2 text-gray-300">House / Location *</label>
               <select value={form.houseId} onChange={(e) => setForm({ ...form, houseId: e.target.value })}
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a]">
-                <option value="">Select house</option>
-                {houses.map((h: any) => <option key={h.id} value={h.id}>{h.name} — {h.location}</option>)}
+                <option value="" className="bg-[#121216] text-white">Select house</option>
+                {houses.map((h: any) => <option key={h.id} value={h.id} className="bg-[#121216] text-white">{h.name} — {h.location}</option>)}
               </select>
             </div>
             <div>
@@ -157,10 +157,10 @@ export default function AdminListingsPage() {
               <label className="block text-sm font-medium mb-2 text-gray-300">Type *</label>
               <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a]">
-                <option value="BED_SPACE">Bed Space</option>
-                <option value="SINGLE_ROOM">Single Room</option>
-                <option value="PREMIUM_SINGLE_ROOM">Premium Single Room</option>
-                <option value="APARTMENT">Apartment</option>
+                <option value="BED_SPACE" className="bg-[#121216] text-white">Bed Space</option>
+                <option value="SINGLE_ROOM" className="bg-[#121216] text-white">Single Room</option>
+                <option value="PREMIUM_SINGLE_ROOM" className="bg-[#121216] text-white">Premium Single Room</option>
+                <option value="APARTMENT" className="bg-[#121216] text-white">Apartment</option>
               </select>
             </div>
             <div>

@@ -159,7 +159,20 @@ export default function AdminSettingsPage() {
             <span className="text-white font-medium">houseofjessehostel@gmail.com</span>
           </div>
         </div>
+        <div className="glass p-6 mt-6 bg-[rgba(255,122,26,0.05)] border border-[#ff7a1a]/20">
+          <h3 className="font-display text-lg mb-4 text-white">System Settings</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="p-4 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] flex flex-col justify-between">
+              <div>
+                <span className="text-gray-300 block mb-1 font-bold">Full Database Backup</span>
+                <span className="text-gray-500 block text-xs mb-4">Export all resident, booking, and history records as JSON.</span>
+              </div>
+              <a href="/api/backup" download className="w-fit text-xs px-4 py-2 bg-gradient-to-br from-green-500 to-green-600 text-white hover:brightness-110 transition font-bold rounded-lg flex items-center gap-2">
+                <Download size={14} /> Download Backup (.json)
+              </a>
+            </div>
+          </div>
+        </div>
       </div >
-    </div >
-  );
+      );
 }

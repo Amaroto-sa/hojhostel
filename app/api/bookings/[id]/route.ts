@@ -61,6 +61,8 @@ export async function PATCH(
         }
       }
 
+      const receiptNumber = "REC-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+
       // Create resident record with email
       await prisma.resident.create({
         data: {
@@ -78,6 +80,16 @@ export async function PATCH(
           durationCount: booking.durationCount,
           dueDate,
           status: "ACTIVE",
+          receipts: {
+            create: {
+              receiptNumber,
+              amount: booking.totalPrice || 0,
+              description: `Booking payment for ${booking.durationCount} ${booking.duration.toLowerCase()}`,
+              type: "BOOKING",
+              userId: booking.userId || null,
+              bookingId: booking.id,
+            }
+          }
         },
       });
 

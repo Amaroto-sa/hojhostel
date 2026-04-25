@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw, Search, User, Home, Filter, Download, MessageCircle, Phone, Mail } from "lucide-react";
+import { AlertTriangle, CheckCircle, LogOut as MoveOut, Clock, X, RefreshCw, Search, User, Home, Filter, Download, MessageCircle, Phone, Mail, FileText } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminResidentsPage() {
   const [residents, setResidents] = useState<any[]>([]);
@@ -277,8 +278,10 @@ export default function AdminResidentsPage() {
                           className="px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 font-medium text-xs hover:bg-green-500/20 transition flex items-center gap-1">
                           <RefreshCw size={14} /> Renew
                         </button>
+                        <Link href={`/admin/residents/${r.id}`} title="View History & Receipts"
+                          className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition"><FileText size={16} className="text-[#b1b1ba]" /></Link>
                         <button onClick={() => updateStatus(r.id, "MOVED_OUT")} title="Mark moved out"
-                          className="p-2 rounded-lg hover:bg-red-500/10"><MoveOut size={16} className="text-red-400" /></button>
+                          className="p-2 rounded-lg hover:bg-red-500/10 transition"><MoveOut size={16} className="text-red-400" /></button>
                       </div>
                     )}
                   </td>

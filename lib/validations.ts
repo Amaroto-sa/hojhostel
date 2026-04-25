@@ -29,7 +29,7 @@ export const bookingSchema = z.object({
 export const listingSchema = z.object({
   houseId: z.string().min(1, "Please select a house"),
   title: z.string().min(2, "Title is required"),
-  type: z.enum(["BED_SPACE", "SINGLE_ROOM", "APARTMENT"]),
+  type: z.enum(["BED_SPACE", "SINGLE_ROOM", "PREMIUM_SINGLE_ROOM", "APARTMENT"]),
   price: z.number().min(0, "Price must be positive"),
   capacity: z.number().min(1, "Capacity must be at least 1"),
   description: z.string().optional(),

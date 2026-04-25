@@ -159,6 +159,7 @@ export default function AdminListingsPage() {
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a]">
                 <option value="BED_SPACE">Bed Space</option>
                 <option value="SINGLE_ROOM">Single Room</option>
+                <option value="PREMIUM_SINGLE_ROOM">Premium Single Room</option>
                 <option value="APARTMENT">Apartment</option>
               </select>
             </div>
@@ -295,7 +296,7 @@ export default function AdminListingsPage() {
                         {l.isFeatured && <Star size={14} className="text-[#ff7a1a]" />}
                         <span className="font-medium text-white">{l.title}</span>
                       </div>
-                      <span className="text-xs text-gray-500">{l.type.replace("_", " ")}</span>
+                      <span className="text-xs text-gray-500">{l.type.replace(/_/g, " ")}</span>
                     </td>
                     <td className="py-4 px-5 text-[#b1b1ba]">{l.house?.name}</td>
                     <td className="py-4 px-5 text-[#ff7a1a] font-semibold">₦{l.price?.toLocaleString()}/wk</td>

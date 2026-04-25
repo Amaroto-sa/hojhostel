@@ -24,6 +24,7 @@ model User {
   adminProfile    AdminProfile?
   bookings        Booking[]
   complaints      Complaint[]
+  receipts        Receipt[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -103,6 +104,7 @@ model Listing {
 enum ListingType {
   BED_SPACE
   SINGLE_ROOM
+  PREMIUM_SINGLE_ROOM
   APARTMENT
 }
 
@@ -136,6 +138,7 @@ model Booking {
   totalPrice      Float?
 
   residents       Resident[]
+  receipts        Receipt[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -177,6 +180,9 @@ model Resident {
   durationCount     Int             @default(1)
   dueDate           DateTime
   status            ResidentStatus  @default(ACTIVE)
+
+  renewals          Renewal[]
+  receipts          Receipt[]
 
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
@@ -263,4 +269,40 @@ model Inquiry {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Renewal {
+  id              String       @id @default(cuid())
+  residentId      String
+  resident        Resident     @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  previousDueDate DateTime
+  newDueDate      DateTime
+  duration        StayDuration
+  durationCount   Int
+  notes           String?
+  createdAt       DateTime     @default(now())
+}
+
+model Receipt {
+  id            String      @id @default(cuid())
+  receiptNumber String      @unique
+  amount        Float
+  description   String
+  type          ReceiptType
+  
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  
+  residentId    String?
+  resident      Resident?   @relation(fields: [residentId], references: [id], onDelete: SetNull)
+  
+  bookingId     String?
+  booking       Booking?    @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  
+  createdAt     DateTime    @default(now())
+}
+
+enum ReceiptType {
+  BOOKING
+  RENEWAL
 }

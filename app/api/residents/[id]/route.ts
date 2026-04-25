@@ -30,7 +30,7 @@ export async function PATCH(
     }
 
     // If marking as moved out or inactive, decrement occupancy
-    if ((newStatus === "MOVED_OUT" || newStatus === "INACTIVE") && resident.status === "ACTIVE") {
+    if ((newStatus === "MOVED_OUT" || newStatus === "INACTIVE") && (resident.status === "ACTIVE" || resident.status === "OVERDUE")) {
       if (resident.listingId) {
         const listing = await prisma.listing.findUnique({ where: { id: resident.listingId } });
         if (listing) {
@@ -66,6 +66,19 @@ export async function PATCH(
         newDurationCount = extensionCount;
       }
 
+      let renewalAmount = 0;
+      if (resident.listing) {
+        renewalAmount = resident.listing.price * extensionCount;
+        if (extensionDuration === "MONTHLY") {
+          renewalAmount = resident.listing.price * 4 * extensionCount;
+        } else if (extensionDuration === "DAILY") {
+          renewalAmount = (resident.listing.price / 7) * extensionCount;
+        }
+      }
+      renewalAmount = Math.round(renewalAmount);
+
+      const receiptNumber = "REC-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+
       const renewed = await prisma.resident.update({
         where: { id: params.id },
         data: {
@@ -73,6 +86,25 @@ export async function PATCH(
           duration: extensionDuration,
           dueDate: newDueDate,
           status: "ACTIVE",
+          renewals: {
+            create: {
+              previousDueDate: currentDueDate,
+              newDueDate: newDueDate,
+              duration: extensionDuration,
+              durationCount: extensionCount,
+              notes: "Manual renewal via admin",
+            }
+          },
+          receipts: {
+            create: {
+              receiptNumber,
+              amount: renewalAmount,
+              description: `Renewal for ${extensionCount} ${extensionDuration.toLowerCase()}`,
+              type: "RENEWAL",
+              userId: resident.customerProfile?.userId || null,
+              bookingId: resident.bookingId || null,
+            }
+          }
         },
       });
 
@@ -138,7 +170,7 @@ export async function DELETE(
     }
 
     const resident = await prisma.resident.findUnique({ where: { id: params.id } });
-    if (resident?.status === "ACTIVE" && resident.listingId) {
+    if ((resident?.status === "ACTIVE" || resident?.status === "OVERDUE") && resident.listingId) {
       const listing = await prisma.listing.findUnique({ where: { id: resident.listingId } });
       if (listing) {
         const newOccupied = Math.max(0, listing.occupied - 1);

@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
+import DraggableBot from "@/components/DraggableBot";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminLayout({
@@ -30,6 +31,9 @@ export default async function AdminLayout({
           </div>
         </div>
       </main>
+
+      {/* Beta System Bot */}
+      <DraggableBot />
     </div>
   );
 }

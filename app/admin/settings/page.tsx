@@ -20,6 +20,9 @@ const defaultSettings = [
   { key: "email_booking_rejected", label: "Email: Booking Rejected Text", type: "textarea" },
   { key: "logo_url", label: "Logo URL (from Cloudinary)", type: "text" },
   { key: "hero_image_url", label: "Homepage Hero Image", type: "text" },
+  { key: "pictorial_display_enabled", label: "Enable Pictorial Room Display", type: "checkbox" },
+  { key: "bot_greeting_name", label: "System Bot: Recipient Name (e.g. Miss Azubuike)", type: "text" },
+  { key: "bot_avatar_initials", label: "System Bot: Avatar Initials (e.g. HOJ)", type: "text" },
 ];
 
 export default function AdminSettingsPage() {

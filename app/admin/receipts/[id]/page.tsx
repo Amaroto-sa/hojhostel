@@ -105,9 +105,10 @@ export default async function ReceiptPage({ params }: { params: { id: string } }
 
                 {/* Print Button (hidden when printing) */}
                 <div className="mt-10 text-center print:hidden">
-                    <button onClick={() => window.print()} className="px-8 py-3 bg-[#111] hover:bg-[#333] transition-colors text-white font-bold rounded-full">
+                    <button id="print-receipt-btn" className="px-8 py-3 bg-[#111] hover:bg-[#333] transition-colors text-white font-bold rounded-full">
                         Print / Save as PDF
                     </button>
+                    <script dangerouslySetInnerHTML={{ __html: `document.getElementById('print-receipt-btn').addEventListener('click', function() { window.print(); })` }} />
                 </div>
 
             </div>

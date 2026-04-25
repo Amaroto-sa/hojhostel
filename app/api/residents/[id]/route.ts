@@ -22,6 +22,7 @@ export async function PATCH(
       where: { id: params.id },
       include: {
         listing: { include: { house: true } },
+        customerProfile: true,
       },
     });
 

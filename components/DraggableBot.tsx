@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Sparkles, Image as ImageIcon } from "lucide-react";
+import { X, Sparkles, Image as ImageIcon, Bot } from "lucide-react";
 
 export default function DraggableBot() {
     const [position, setPosition] = useState({ x: -1, y: -1 });
@@ -13,6 +13,7 @@ export default function DraggableBot() {
     const [step, setStep] = useState<"ASK" | "DONE" | "DISMISSED">("ASK");
     const [settings, setSettings] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
+    const [disabled, setDisabled] = useState(false);
 
     // Load configuration
     useEffect(() => {
@@ -26,6 +27,11 @@ export default function DraggableBot() {
                 });
             }
             setLoading(false);
+
+            if (data.system_bot_enabled === "false") {
+                setDisabled(true);
+                return;
+            }
 
             // Don't auto-pop if they already turned it on! Just stay as a quiet icon
             if (data.pictorial_display_enabled === "true") {
@@ -81,10 +87,9 @@ export default function DraggableBot() {
         setStep("DONE");
     }
 
-    if (loading || step === "DISMISSED") return null;
+    if (loading || disabled) return null;
 
     const botName = settings.bot_greeting_name || "Miss Azubuike";
-    const botInitials = settings.bot_avatar_initials || "HOJ";
 
     return (
         <div
@@ -100,17 +105,17 @@ export default function DraggableBot() {
         >
             {isOpen && (
                 <div className={`bg-[#121216] border border-[#ff7a1a]/40 shadow-[0_10px_40px_rgba(255,122,26,0.15)] rounded-2xl p-5 w-[300px] transform origin-bottom border-b-4 border-b-[#ff7a1a]`}>
-                    <button onClick={() => setStep("DISMISSED")} className="absolute top-3 right-3 text-gray-500 hover:text-white transition">
+                    <button onClick={() => setStep("DISMISSED")} className="absolute top-3 right-3 text-gray-500 hover:text-white transition z-20">
                         <X size={16} />
                     </button>
-                    <div className="flex gap-3 items-start mb-4">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] flex items-center justify-center text-[#111] font-black text-sm shadow-md shrink-0">
-                            {botInitials}
+                    <div className="flex gap-3 items-start mb-4 relative z-10">
+                        <div className="w-12 h-12 rounded-full border border-[#ff7a1a]/50 bg-gradient-to-b from-[#ff7a1a]/20 to-[#121216] flex items-center justify-center text-[#ff7a1a] shadow-[0_0_15px_rgba(255,122,26,0.3)] shrink-0 overflow-hidden relative">
+                            <Bot size={26} strokeWidth={1.5} className="relative z-10 drop-shadow-[0_0_8px_rgba(255,122,26,1)]" />
                         </div>
-                        <div>
-                            <h4 className="text-white font-bold text-sm leading-tight">Project AI</h4>
+                        <div className="pt-1">
+                            <h4 className="text-white font-bold text-[15px] leading-tight">System AI</h4>
                             <p className="text-[10px] uppercase tracking-wider text-green-400 font-bold flex items-center gap-1.5 mt-0.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Online
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></span> Online
                             </p>
                         </div>
                     </div>
@@ -142,9 +147,13 @@ export default function DraggableBot() {
 
             <div
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-14 h-14 rounded-full bg-[#121216] border-2 border-[#ff7a1a] shadow-[0_0_20px_rgba(255,122,26,0.3)] flex items-center justify-center text-[#ff7a1a] hover:bg-[#ff7a1a] hover:text-[#111] transition-all cursor-pointer z-50 float-right self-end"
+                className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-b from-[#1c1c22] to-[#121216] border border-[#ff7a1a]/40 shadow-[0_0_25px_rgba(255,122,26,0.4)] flex items-center justify-center text-[#ff7a1a] hover:bg-[#ff7a1a] hover:text-[#111] transition-all cursor-pointer z-50 float-right self-end group overflow-hidden relative"
             >
-                <Sparkles size={24} className={isOpen ? "rotate-45" : ""} />
+                {isOpen ? (
+                    <X size={26} className="transition-transform group-hover:scale-110" />
+                ) : (
+                    <Bot size={32} strokeWidth={1.5} className="group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(255,122,26,0.8)]" />
+                )}
             </div>
         </div>
     );

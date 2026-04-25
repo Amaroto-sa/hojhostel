@@ -22,7 +22,8 @@ const defaultSettings = [
   { key: "hero_image_url", label: "Homepage Hero Image", type: "text" },
   { key: "pictorial_display_enabled", label: "Enable Pictorial Room Display", type: "checkbox" },
   { key: "bot_greeting_name", label: "System Bot: Recipient Name (e.g. Miss Azubuike)", type: "text" },
-  { key: "bot_avatar_initials", label: "System Bot: Avatar Initials (e.g. HOJ)", type: "text" },
+  { key: "bot_avatar_initials", label: "System Bot: Avatar Text (e.g. AI)", type: "text" },
+  { key: "system_bot_enabled", label: "Enable System Bot (Floating Assistant)", type: "checkbox" },
 ];
 
 export default function AdminSettingsPage() {

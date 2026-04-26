@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
         // Append Bookings
         for (const b of bookings) {
-            csv += `${escape("Booking Request")},${escape(b.residentName)},${escape(b.residentEmail)},${escape(b.residentPhone)},${escape(b.reference)},${escape(b.listing?.house?.name)},${escape(b.listing?.title)},${escape(b.status)},${escape(new Date(b.checkInDate).toLocaleDateString())},${escape(b.durationCount + " " + b.duration)},${escape("Pending")},${escape(b.totalPrice ? "₦" + b.totalPrice.toLocaleString() : "")}\n`;
+            csv += `${escape("Booking Request")},${escape(b.residentName)},${escape(b.residentEmail)},${escape(b.residentPhone)},${escape(b.id)},${escape(b.listing?.house?.name)},${escape(b.listing?.title)},${escape(b.status)},${escape(new Date(b.checkInDate).toLocaleDateString())},${escape(b.durationCount + " " + b.duration)},${escape("Pending")},${escape(b.totalPrice ? "₦" + b.totalPrice.toLocaleString() : "")}\n`;
         }
 
         // Force BOM so Excel automatically recognizes UTF-8 (important for the ₦ Naira sign)

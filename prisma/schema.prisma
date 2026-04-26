@@ -38,12 +38,6 @@ enum Role {
   SUPER_ADMIN
 }
 
-enum ReceiptType {
-  RENT
-  CAUTION_FEE
-  FINE
-  OTHER
-}
 
 model Expense {
   id          String   @id @default(cuid())
@@ -359,4 +353,8 @@ model Receipt {
 enum ReceiptType {
   BOOKING
   RENEWAL
+  RENT
+  CAUTION_FEE
+  FINE
+  OTHER
 }

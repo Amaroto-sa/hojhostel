@@ -26,7 +26,6 @@ model User {
   complaints      Complaint[]
   receipts        Receipt[]
   expenses        Expense[]
-  clearances      Clearance[]
   notices         Notice[]
 
   createdAt     DateTime  @default(now())
@@ -37,6 +36,57 @@ enum Role {
   CUSTOMER
   ADMIN
   SUPER_ADMIN
+}
+
+enum ReceiptType {
+  RENT
+  CAUTION_FEE
+  FINE
+  OTHER
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  amount      Float
+  category    String   @default("GENERAL") // GENERATOR, MAINTENANCE, SALARY, SUPPLIES, UTILITY
+  description String   @db.Text
+  date        DateTime @default(now())
+  
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Clearance {
+  id              String   @id @default(cuid())
+  residentId      String   @unique
+  resident        Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  
+  keysReturned    Boolean  @default(false)
+  roomDamages     String?  @db.Text
+  finesDeducted   Float    @default(0)
+  cautionRefunded Float    @default(0)
+  isCleared       Boolean  @default(false)
+  clearedBy       String?  
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Notice {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  type        String   @default("INFO") // INFO, WARNING, URGENT
+  isActive    Boolean  @default(true)
+  
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model CustomerProfile {

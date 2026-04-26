@@ -20,6 +20,7 @@ export default async function CustomerDashboard() {
   // Fetch customer profile, residents, and bookings
   let profile: any = null;
   let bookings: any[] = [];
+  let globals: any[] = [];
   let contactEmail = "houseofjessehostel@gmail.com";
 
   try {
@@ -32,6 +33,12 @@ export default async function CustomerDashboard() {
       where: { userId: session.user.id },
       include: { listing: { include: { house: true } } },
       orderBy: { createdAt: "desc" },
+    });
+
+    globals = await prisma.notice.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      take: 3
     });
 
     const contactEmailSetting = await prisma.setting.findUnique({ where: { key: "contact_email" } });
@@ -69,6 +76,25 @@ export default async function CustomerDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main Column */}
         <div className="md:col-span-2 space-y-6">
+
+          {/* Broadcast Board */}
+          {globals.length > 0 && (
+            <div className="space-y-4 mb-6">
+              {globals.map(n => (
+                <div key={n.id} className="relative overflow-hidden glass p-4 border-l-4 pr-10" style={{
+                  borderLeftColor: n.type === 'URGENT' ? '#ef4444' : n.type === 'WARNING' ? '#eab308' : '#3b82f6'
+                }}>
+                  <div className={`absolute top-0 right-0 px-3 py-1 text-[10px] font-black uppercase text-white rounded-bl-lg ${n.type === 'URGENT' ? 'bg-red-500' : n.type === 'WARNING' ? 'bg-yellow-500' : 'bg-blue-500'}`}>
+                    {n.type}
+                  </div>
+                  <h3 className="font-bold text-white mb-1.5">{n.title}</h3>
+                  <p className="text-gray-300 text-sm">{n.content}</p>
+                  <p className="text-xs text-gray-500 mt-2 font-medium">{new Date(n.createdAt).toLocaleDateString()}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Current Stay */}
           <div className="glass p-8">
             <h2 className="font-display text-2xl mb-6 flex items-center gap-2"><Clock size={20} className="text-[#ff7a1a]" /> Current Stay</h2>

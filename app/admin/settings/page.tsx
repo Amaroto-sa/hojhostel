@@ -173,9 +173,14 @@ export default function AdminSettingsPage() {
               <span className="text-gray-300 block mb-1 font-bold">Full Database Backup</span>
               <span className="text-gray-500 block text-xs mb-4">Export all resident, booking, and history records as JSON.</span>
             </div>
-            <a href="/api/backup" download className="w-fit text-xs px-4 py-2 bg-gradient-to-br from-green-500 to-green-600 text-white hover:brightness-110 transition font-bold rounded-lg flex items-center gap-2">
-              <Download size={14} /> Download Backup (.json)
-            </a>
+            <div className="flex flex-wrap gap-3">
+              <a href="/api/backup/excel" download className="w-fit px-4 py-2 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:brightness-110 transition font-bold rounded-xl flex items-center gap-2 text-sm">
+                <Download size={16} /> Export to Excel (.csv)
+              </a>
+              <a href="/api/backup" download className="w-fit text-xs px-4 py-2 bg-[#2d2d30] text-gray-300 hover:text-white transition font-bold rounded-xl flex items-center gap-2 border border-[#404040]">
+                Raw Code (.json)
+              </a>
+            </div>
           </div>
         </div>
       </div>

@@ -43,13 +43,13 @@ export default function AdminSettingsPage() {
     setSaving(true);
     setSaved(false);
 
-    for (const [key, value] of Object.entries(settings)) {
-      await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, value }),
-      });
-    }
+    const settingsArray = Object.entries(settings).map(([key, value]) => ({ key, value }));
+
+    await fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bulk: true, settings: settingsArray }),
+    });
 
     setSaving(false);
     setSaved(true);

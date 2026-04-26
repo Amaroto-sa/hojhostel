@@ -22,6 +22,22 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+
+    // Handle Bulk Transaction Save
+    if (body.bulk && Array.isArray(body.settings)) {
+      await prisma.$transaction(
+        body.settings.map((item: any) =>
+          prisma.setting.upsert({
+            where: { key: item.key },
+            update: { value: String(item.value) },
+            create: { key: item.key, value: String(item.value) },
+          })
+        )
+      );
+      return NextResponse.json({ success: true, message: "Bulk settings saved" });
+    }
+
+    // Single setting fallback
     const { key, value } = body;
 
     if (!key || value === undefined) {
@@ -30,8 +46,8 @@ export async function POST(request: Request) {
 
     const setting = await prisma.setting.upsert({
       where: { key },
-      update: { value },
-      create: { key, value },
+      update: { value: String(value) },
+      create: { key, value: String(value) },
     });
 
     return NextResponse.json(setting);

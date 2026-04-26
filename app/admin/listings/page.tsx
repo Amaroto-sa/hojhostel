@@ -16,8 +16,8 @@ export default function AdminListingsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingHouseId, setEditingHouseId] = useState<string | null>(null);
 
-  const [form, setForm] = useState({
-    houseId: "", title: "", type: "BED_SPACE", price: 0, capacity: 1,
+  const [form, setForm] = useState<any>({
+    houseId: "", title: "", type: "BED_SPACE", price: "", capacity: "",
     description: "", isFeatured: false, isPublished: true,
   });
 
@@ -39,18 +39,23 @@ export default function AdminListingsPage() {
   }
 
   async function handleSave() {
+    const payload = {
+      ...form,
+      price: Number(form.price) || 0,
+      capacity: Number(form.capacity) || 1,
+    };
     const url = editingId ? `/api/listings/${editingId}` : "/api/listings";
     const method = editingId ? "PATCH" : "POST";
 
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
 
     setShowForm(false);
     setEditingId(null);
-    setForm({ houseId: "", title: "", type: "BED_SPACE", price: 0, capacity: 1, description: "", isFeatured: false, isPublished: true });
+    setForm({ houseId: "", title: "", type: "BED_SPACE", price: "", capacity: "", description: "", isFeatured: false, isPublished: true });
     fetchData();
   }
 
@@ -165,12 +170,12 @@ export default function AdminListingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-300">Price (₦ / week) *</label>
-              <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+              <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })}
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a]" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-300">Capacity *</label>
-              <input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} min="1"
+              <input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} min="1"
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a]" />
             </div>
             <div>

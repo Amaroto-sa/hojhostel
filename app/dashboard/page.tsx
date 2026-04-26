@@ -20,6 +20,7 @@ export default async function CustomerDashboard() {
   // Fetch customer profile, residents, and bookings
   let profile: any = null;
   let bookings: any[] = [];
+  let contactEmail = "houseofjessehostel@gmail.com";
 
   try {
     profile = await prisma.customerProfile.findUnique({
@@ -32,6 +33,11 @@ export default async function CustomerDashboard() {
       include: { listing: { include: { house: true } } },
       orderBy: { createdAt: "desc" },
     });
+
+    const contactEmailSetting = await prisma.setting.findUnique({ where: { key: "contact_email" } });
+    if (contactEmailSetting?.value) {
+      contactEmail = contactEmailSetting.value;
+    }
   } catch {
     // Database not ready yet
   }
@@ -208,7 +214,7 @@ export default async function CustomerDashboard() {
             <p className="text-sm text-[#b1b1ba] mb-3">Contact us directly for any questions about your stay or account.</p>
             <div className="space-y-2 text-sm">
               <p className="text-gray-400">📞 <span className="text-white">+234 814 541 6775</span></p>
-              <p className="text-gray-400">📧 <span className="text-white text-xs">houseofjessehostel@gmail.com</span></p>
+              <p className="text-gray-400">📧 <span className="text-white text-xs">{contactEmail}</span></p>
             </div>
           </div>
         </div>

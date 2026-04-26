@@ -24,6 +24,9 @@ export default async function ReceiptPage({ params }: { params: { id: string } }
         return <div className="p-10 text-center">Receipt Not Found</div>;
     }
 
+    const contactEmailSetting = await prisma.setting.findUnique({ where: { key: "contact_email" } });
+    const contactEmail = contactEmailSetting?.value || "houseofjessehostel@gmail.com";
+
     const listingName = receipt.resident?.listing?.title || receipt.booking?.listing?.title || "N/A";
     const houseName = receipt.resident?.listing?.house?.name || receipt.booking?.listing?.house?.name || "HOJ";
     const clientName = receipt.resident?.name || receipt.booking?.residentName || receipt.user?.name || "Client";
@@ -38,7 +41,7 @@ export default async function ReceiptPage({ params }: { params: { id: string } }
                     <div>
                         <h1 className="text-3xl font-black text-[#ff7a1a]">HOJ HOSTEL</h1>
                         <p className="text-gray-500 text-sm mt-1">House of Jesse, Ajah, Lagos</p>
-                        <p className="text-gray-500 text-sm">houseofjessehostel@gmail.com</p>
+                        <p className="text-gray-500 text-sm">{contactEmail}</p>
                     </div>
                     <div className="text-right">
                         <h2 className="text-4xl font-black text-gray-200 tracking-wider">RECEIPT</h2>

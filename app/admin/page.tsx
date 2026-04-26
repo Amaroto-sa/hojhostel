@@ -37,13 +37,12 @@ export default async function AdminDashboardOverview() {
       where: { status: "UNREAD" },
     });
 
-    const revenueBookings = await prisma.booking.findMany({
-      where: { status: { in: ["APPROVED", "COMPLETED"] } },
-      select: { totalPrice: true },
+    const globalReceipts = await prisma.receipt.findMany({
+      select: { amount: true },
     });
 
-    estimatedRevenue = revenueBookings.reduce(
-      (sum, booking) => sum + Number(booking.totalPrice ?? 0),
+    estimatedRevenue = globalReceipts.reduce(
+      (sum, receipt) => sum + Number(receipt.amount ?? 0),
       0
     );
 
@@ -106,7 +105,7 @@ export default async function AdminDashboardOverview() {
         <StatCard
           title="Total Revenue"
           value={`₦${estimatedRevenue.toLocaleString()}`}
-          description="From approved bookings"
+          description="Gross income from generated receipts"
         />
         <StatCard
           title="Total Listings"

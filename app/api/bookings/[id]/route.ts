@@ -103,39 +103,80 @@ export async function PATCH(
         },
       });
 
-      // Send welcome email with house rules to client
+      // Fetch settings directly
+      let houseRulesText = "";
+      let customApprovalText = "";
+
+      const [rulesSetting, approvalSetting] = await Promise.all([
+        prisma.setting.findUnique({ where: { key: "house_rules" } }),
+        prisma.setting.findUnique({ where: { key: "email_booking_approved" } })
+      ]);
+
+      houseRulesText = rulesSetting?.value || "";
+      customApprovalText = approvalSetting?.value || "";
+
+      // Send ONE comprehensive email instead of 2 to avoid SMTP throttling
       if (clientEmail) {
-        const houseRulesSetting = await prisma.setting.findUnique({
-          where: { key: "house_rules" },
+        // Send a massive combined email containing BOTH banking details and house rules!
+        const htmlContent = `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0a0a0c;color:#f5f5f7;border-radius:16px;">
+            <h1 style="color:#4ade80;">Booking Approved ✅</h1>
+            <p style="font-size:16px;">Hi ${booking.residentName},</p>
+            <p style="font-size:16px;">Congratulations! Your booking for <strong style="color:#ff7a1a;">${booking.listing.title}</strong> has been officially approved.</p>
+            
+            <div style="background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin:24px 0;border-left:4px solid #ff7a1a;">
+              <h2 style="font-size:16px;margin-top:0;color:#ff7a1a;">Banking & Payment Instructions</h2>
+              <p style="margin:8px 0 0;font-size:15px;line-height:1.6;">${customApprovalText ? customApprovalText.replace(/\n/g, '<br />') : 'Make your payment directly to the hostel management.'}</p>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin:24px 0;">
+              <h2 style="font-size:16px;margin-top:0;color:#fff;">Hostel House Rules</h2>
+              <div style="font-size:14px;line-height:1.6;color:#ccc;">
+                 ${houseRulesText ? houseRulesText.replace(/\n/g, '<br />') : 'You will receive house rules upon arrival.'}
+              </div>
+            </div>
+
+            <p>For any questions or to submit payment proof, please message us on WhatsApp:</p>
+            <div style="margin:16px 0;">
+              <a href="https://wa.me/2348145416775" style="background:#ff7a1a;color:#111;font-weight:bold;padding:12px 24px;border-radius:30px;text-decoration:none;display:inline-block;font-size:14px;">Contact HOJ Hostel</a>
+            </div>
+            <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:24px 0;" />
+            <p style="color:#666;font-size:12px;">House of Jesse (HOJ Hostel) Administration</p>
+          </div>
+        `;
+
+        await sendEmail({
+          to: clientEmail,
+          subject: "Booking Approved! Payment Instructions inside ✅",
+          html: htmlContent,
+          type: "booking_approved_combined"
         });
-        const welcomeData = welcomeEmail(booking.residentName, houseRulesSetting?.value || "");
-        await sendEmail({ to: clientEmail, ...welcomeData, type: "welcome" });
       }
 
       // Notify admin via Telegram (optional)
       await sendTelegramNotification(
         `✅ <b>Booking Approved</b>\n<b>Resident:</b> ${booking.residentName}\n<b>Accommodation:</b> ${booking.listing.title}\n<b>Due Date:</b> ${dueDate.toDateString()}`
       );
-    }
+    } else if (status === "REJECTED" || status === "CANCELLED") {
+      // Send Rejection Email
+      if (clientEmail) {
+        const s = await prisma.setting.findUnique({ where: { key: "email_booking_rejected" } });
+        const customText = s?.value || "";
 
-    // Send status update email to client
-    if (clientEmail) {
-      const settingKey = status === "APPROVED" ? "email_booking_approved" : status === "REJECTED" ? "email_booking_rejected" : null;
-      let customText = null;
-      if (settingKey) {
-        const s = await prisma.setting.findUnique({ where: { key: settingKey } });
-        customText = s?.value;
+        const statusEmailData = bookingStatusEmail(booking.residentName, status, customText);
+        await sendEmail({ to: clientEmail, ...statusEmailData, type: "booking_status" });
       }
-
-      const statusEmailData = bookingStatusEmail(booking.residentName, status, customText || undefined);
-      await sendEmail({ to: clientEmail, ...statusEmailData, type: "booking_status" });
-    }
-
-    // Notify admin via Telegram for rejections too (optional)
-    if (status === "REJECTED") {
-      await sendTelegramNotification(
-        `❌ <b>Booking Rejected</b>\n<b>Resident:</b> ${booking.residentName}\n<b>Accommodation:</b> ${booking.listing.title}`
-      );
+      if (status === "REJECTED") {
+        await sendTelegramNotification(
+          `❌ <b>Booking Rejected</b>\n<b>Resident:</b> ${booking.residentName}\n<b>Accommodation:</b> ${booking.listing.title}`
+        );
+      }
+    } else {
+      // Other status updates (like PENDING again, etc)
+      if (clientEmail) {
+        const statusEmailData = bookingStatusEmail(booking.residentName, status);
+        await sendEmail({ to: clientEmail, ...statusEmailData, type: "booking_status" });
+      }
     }
 
     return NextResponse.json(updated);

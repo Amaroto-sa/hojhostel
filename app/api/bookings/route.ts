@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     // Send booking confirmation email to client
     if (clientEmail) {
       const emailSetting = await prisma.setting.findUnique({ where: { key: "email_booking_received" } });
-      const customerEmailData = bookingSubmisionEmail(data.residentName, listing.title, emailSetting?.value || undefined);
+      const customerEmailData = bookingSubmisionEmail(data.residentName, listing.house.name, emailSetting?.value || undefined);
       await sendEmail({ to: clientEmail, ...customerEmailData, type: "booking_confirmation" });
     }
 

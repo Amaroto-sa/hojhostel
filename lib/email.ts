@@ -42,7 +42,7 @@ export async function sendEmail({ to, subject, html, type = "general", replyTo }
 
 
 // Pre-built email templates
-export function bookingSubmisionEmail(customerName: string, listingTitle: string, customText?: string) {
+export function bookingSubmisionEmail(customerName: string, houseName: string, customText?: string) {
   const messageHtml = customText
     ? customText.replace(/\n/g, '<br />')
     : "Our team will review your request. You will receive an email once it is approved or if more information is needed.";
@@ -51,9 +51,9 @@ export function bookingSubmisionEmail(customerName: string, listingTitle: string
     subject: "Booking Request Received - HOJ Hostel",
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0a0a0c;color:#f5f5f7;border-radius:16px;border:1px solid rgba(255,122,26,0.1);">
-        <h1 style="color:#ff7a1a;font-size:24px;margin-bottom:20px;">Booking Request Received</h1>
+        <h1 style="color:#ff7a1a;font-size:24px;margin-bottom:20px;">Reservation Request Received</h1>
         <p style="font-size:16px;line-height:1.6;">Hi ${customerName},</p>
-        <p style="font-size:16px;line-height:1.6;">Your booking request for <strong>${listingTitle}</strong> has been received by House of Jesse Hostel.</p>
+        <p style="font-size:16px;line-height:1.6;">Your single bed space reservation request at <strong>${houseName}</strong> has been safely received by House of Jesse Hostel.</p>
         <div style="background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin:24px 0;">
           <p style="margin:0;font-size:14px;color:#b1b1ba;">Next Steps:</p>
           <p style="margin:8px 0 0;font-size:15px;color:#ececf0;line-height:1.6;">${messageHtml}</p>

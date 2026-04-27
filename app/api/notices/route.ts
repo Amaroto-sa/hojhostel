@@ -27,7 +27,9 @@ export async function POST(request: Request) {
         // Fetch all active residents and email them the custom broadcast.
         const activeUsers = await prisma.user.findMany({
             where: {
-                residents: { some: { status: "ACTIVE" } }
+                customerProfile: {
+                    residents: { some: { status: "ACTIVE" } }
+                }
             },
             select: { email: true, name: true }
         });

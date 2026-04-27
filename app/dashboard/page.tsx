@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { LogOut, Calendar, User, Clock } from "lucide-react";
+import CancelBookingButton from "@/components/CancelBookingButton";
 
 export const dynamic = "force-dynamic";
 export default async function CustomerDashboard() {
@@ -22,6 +23,7 @@ export default async function CustomerDashboard() {
   let bookings: any[] = [];
   let globals: any[] = [];
   let contactEmail = "houseofjessehostel@gmail.com";
+  let whatsappLink = "https://wa.me/2348145416775";
 
   try {
     profile = await prisma.customerProfile.findUnique({
@@ -44,6 +46,11 @@ export default async function CustomerDashboard() {
     const contactEmailSetting = await prisma.setting.findUnique({ where: { key: "contact_email" } });
     if (contactEmailSetting?.value) {
       contactEmail = contactEmailSetting.value;
+    }
+    
+    const whatsappSetting = await prisma.setting.findUnique({ where: { key: "whatsapp_number" } });
+    if (whatsappSetting?.value) {
+      whatsappLink = `https://wa.me/${whatsappSetting.value.replace(/\\D/g, '')}`;
     }
   } catch {
     // Database not ready yet
@@ -170,6 +177,9 @@ export default async function CustomerDashboard() {
                     <p className="text-xs text-gray-500 mt-3">
                       Submitted {new Date(booking.createdAt).toLocaleDateString()}
                     </p>
+                    {booking.status === "PENDING" && (
+                      <CancelBookingButton bookingId={booking.id} />
+                    )}
                   </div>
                 ))}
               </div>
@@ -219,7 +229,7 @@ export default async function CustomerDashboard() {
                 Check Availability
               </Link>
               <Link
-                href="https://wa.me/2348145416775"
+                href={whatsappLink}
                 target="_blank"
                 className="block text-center w-full py-3 rounded-xl bg-gradient-to-br from-[#25d366] to-[#18b453] text-white font-bold text-sm"
               >

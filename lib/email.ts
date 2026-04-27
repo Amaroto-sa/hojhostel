@@ -2,6 +2,7 @@
 // No SMTP secrets are hardcoded. Configure via Vercel environment variables.
 
 import nodemailer from "nodemailer";
+import { prisma } from "@/lib/prisma";
 
 interface EmailOptions {
   to: string;
@@ -31,11 +32,47 @@ export async function sendEmail({ to, subject, html, type = "general", replyTo }
       auth: { user, pass },
     });
 
-    await transporter.sendMail({ from, to, subject, html, replyTo });
+    const whatsappSetting = await prisma.setting.findUnique({ where: { key: "whatsapp_number" } });
+    const whatsappNumber = whatsappSetting?.value || "+234 814 541 6775";
+    const whatsappLink = `https://wa.me/${whatsappNumber.replace(/\\D/g, '')}`;
+
+    const finalHtml = html
+      .replace(/\\{\\{WHATSAPP_NUMBER\\}\\}/g, whatsappNumber)
+      .replace(/\\{\\{WHATSAPP_LINK\\}\\}/g, whatsappLink);
+
+    await transporter.sendMail({ from, to, subject, html: finalHtml, replyTo });
     console.log(`[Email] Sent "${subject}" to ${to}`);
+    
+    // Log the email
+    try {
+      await prisma.emailLog.create({
+        data: {
+          to,
+          subject,
+          type,
+          status: "sent"
+        }
+      });
+    } catch (logErr) {
+      console.error("[EmailLog] Failed to save log:", logErr);
+    }
+    
     return { success: true };
   } catch (error: any) {
     console.error("[Email] Failed to send:", error.message);
+    
+    try {
+      await prisma.emailLog.create({
+        data: {
+          to,
+          subject,
+          type,
+          status: "failed",
+          error: error.message
+        }
+      });
+    } catch (e) {}
+    
     return { success: false, error: error.message };
   }
 }
@@ -60,7 +97,7 @@ export function bookingSubmisionEmail(customerName: string, houseName: string, c
         </div>
         <p style="font-size:14px;color:#b1b1ba;">If you have any urgent questions, reach out via WhatsApp:</p>
         <div style="margin:16px 0;">
-          <a href="https://wa.me/2348145416775" style="background:#ff7a1a;color:#111;font-weight:bold;padding:12px 24px;border-radius:30px;text-decoration:none;display:inline-block;font-size:14px;">Chat on WhatsApp</a>
+          <a href="{{WHATSAPP_LINK}}" style="background:#ff7a1a;color:#111;font-weight:bold;padding:12px 24px;border-radius:30px;text-decoration:none;display:inline-block;font-size:14px;">Chat on WhatsApp</a>
         </div>
         <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:24px 0;" />
         <p style="color:#666;font-size:12px;">House of Jesse / HOJ Hostel &nbsp;|&nbsp; Ajah, Lagos</p>
@@ -163,7 +200,7 @@ export function bookingStatusEmail(customerName: string, status: string, customT
         <p>Hi ${customerName},</p>
         <p>Your booking has been <strong style="color:#ff7a1a;">${status.toLowerCase()}</strong>.</p>
         ${messageHtml}
-        <p>Contact us on WhatsApp: <a href='https://wa.me/2348145416775' style='color:#ff7a1a;'>+234 814 541 6775</a></p>
+        <p>Contact us on WhatsApp: <a href='{{WHATSAPP_LINK}}' style='color:#ff7a1a;'>{{WHATSAPP_NUMBER}}</a></p>
         <hr style="border-color:rgba(255,255,255,0.1);margin:20px 0;" />
         <p style="color:#b1b1ba;font-size:13px;">House of Jesse / HOJ Hostel</p>
       </div>
@@ -182,7 +219,7 @@ export function welcomeEmail(customerName: string, houseRules: string) {
         <div style="background:rgba(255,255,255,0.06);padding:16px;border-radius:12px;margin:16px 0;">
           ${houseRules || "<p>House rules will be provided by the management team.</p>"}
         </div>
-        <p>For any questions or concerns, contact us via WhatsApp: <a href='https://wa.me/2348145416775' style='color:#ff7a1a;'>+234 814 541 6775</a></p>
+        <p>For any questions or concerns, contact us via WhatsApp: <a href='{{WHATSAPP_LINK}}' style='color:#ff7a1a;'>{{WHATSAPP_NUMBER}}</a></p>
         <hr style="border-color:rgba(255,255,255,0.1);margin:20px 0;" />
         <p style="color:#b1b1ba;font-size:13px;">House of Jesse / HOJ Hostel</p>
       </div>
@@ -203,7 +240,7 @@ export function verificationEmail(customerName: string, verifyUrl: string) {
         </div>
         <p style="color:#b1b1ba;font-size:13px;">This link expires in <strong style="color:#f5f5f7;">24 hours</strong>. If you did not register, you can safely ignore this email.</p>
         <hr style="border-color:rgba(255,255,255,0.1);margin:20px 0;" />
-        <p style="color:#b1b1ba;font-size:13px;">House of Jesse / HOJ Hostel &nbsp;|&nbsp; <a href="https://wa.me/2348145416775" style="color:#ff7a1a;">+234 814 541 6775</a></p>
+        <p style="color:#b1b1ba;font-size:13px;">House of Jesse / HOJ Hostel &nbsp;|&nbsp; <a href="{{WHATSAPP_LINK}}" style="color:#ff7a1a;">{{WHATSAPP_NUMBER}}</a></p>
       </div>
     `,
   };

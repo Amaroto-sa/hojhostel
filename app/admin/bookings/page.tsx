@@ -18,6 +18,7 @@ export default function AdminBookingsPage() {
   }
 
   async function updateStatus(id: string, status: string) {
+    if (!window.confirm(`Are you sure you want to mark this booking as ${status}?`)) return;
     await fetch(`/api/bookings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -104,7 +105,7 @@ export default function AdminBookingsPage() {
 
           {/* Status Tabs */}
           <div className="flex gap-2 w-full sm:w-auto overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
-            {["all", "PENDING", "APPROVED", "REJECTED"].map((f) => (
+            {["all", "PENDING", "APPROVED", "REJECTED", "CANCELLED", "COMPLETED"].map((f) => (
               <button key={f} onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${filter === f ? 'bg-[#ff7a1a] text-[#111]' : 'bg-[rgba(255,255,255,0.05)] text-[#b1b1ba] border border-[rgba(255,255,255,0.08)]'}`}>
                 {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
@@ -187,6 +188,18 @@ export default function AdminBookingsPage() {
                   <button onClick={() => updateStatus(booking.id, "REJECTED")}
                     className="flex items-center gap-2 px-5 py-2 rounded-full bg-red-500/20 text-red-400 text-sm font-bold border border-red-500/20 hover:bg-red-500/30 transition">
                     <XCircle size={16} /> Reject
+                  </button>
+                </div>
+              )}
+              {booking.status === "APPROVED" && (
+                <div className="flex gap-3">
+                  <button onClick={() => updateStatus(booking.id, "COMPLETED")}
+                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-bold border border-blue-500/20 hover:bg-blue-500/30 transition">
+                    <CheckCircle size={16} /> Mark Completed
+                  </button>
+                  <button onClick={() => updateStatus(booking.id, "CANCELLED")}
+                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-gray-500/20 text-gray-400 text-sm font-bold border border-gray-500/20 hover:bg-gray-500/30 transition">
+                    <XCircle size={16} /> Cancel
                   </button>
                 </div>
               )}

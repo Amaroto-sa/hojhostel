@@ -138,7 +138,7 @@ export async function PATCH(
 
             <p>For any questions or to submit payment proof, please message us on WhatsApp:</p>
             <div style="margin:16px 0;">
-              <a href="https://wa.me/2348145416775" style="background:#ff7a1a;color:#111;font-weight:bold;padding:12px 24px;border-radius:30px;text-decoration:none;display:inline-block;font-size:14px;">Contact HOJ Hostel</a>
+              <a href="{{WHATSAPP_LINK}}" style="background:#ff7a1a;color:#111;font-weight:bold;padding:12px 24px;border-radius:30px;text-decoration:none;display:inline-block;font-size:14px;">Contact HOJ Hostel</a>
             </div>
             <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:24px 0;" />
             <p style="color:#666;font-size:12px;">House of Jesse (HOJ Hostel) Administration</p>
@@ -158,6 +158,20 @@ export async function PATCH(
         `✅ <b>Booking Approved</b>\n<b>Resident:</b> ${booking.residentName}\n<b>Accommodation:</b> ${booking.listing.title}\n<b>Due Date:</b> ${dueDate.toDateString()}`
       );
     } else if (status === "REJECTED" || status === "CANCELLED") {
+      // Reversal logic for APPROVED -> CANCELLED
+      if (booking.status === "APPROVED" && status === "CANCELLED") {
+        await prisma.listing.update({
+          where: { id: booking.listingId },
+          data: {
+            occupied: { decrement: 1 }
+          }
+        });
+        await prisma.resident.updateMany({
+          where: { bookingId: booking.id },
+          data: { status: "INACTIVE" }
+        });
+      }
+
       // Send Rejection Email
       if (clientEmail) {
         const s = await prisma.setting.findUnique({ where: { key: "email_booking_rejected" } });

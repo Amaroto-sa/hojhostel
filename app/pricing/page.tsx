@@ -79,7 +79,7 @@ export default async function PricingPage() {
               ))}
             </ul>
 
-            <Link href="/book" className={`block text-center w-full py-3 rounded-full font-bold text-sm transition mt-auto ${plan.isFeatured
+            <Link href={plan.id ? `/book?listingId=${plan.id}` : "/book"} className={`block text-center w-full py-3 rounded-full font-bold text-sm transition mt-auto ${plan.isFeatured
               ? 'bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] shadow-[0_10px_30px_rgba(255,122,26,0.28)]'
               : 'bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white hover:bg-[rgba(255,255,255,0.1)]'
               }`}>

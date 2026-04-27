@@ -5,9 +5,19 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
+    
     const settings = await prisma.setting.findMany();
     const settingsMap: Record<string, string> = {};
-    settings.forEach((s) => { settingsMap[s.key] = s.value; });
+    
+    const publicKeys = ["whatsapp_number", "contact_email", "hostel_intro", "hero_image_url", "enable_guest_booking", "enable_user_auth"];
+    
+    settings.forEach((s) => { 
+      if (isAdmin || publicKeys.includes(s.key)) {
+        settingsMap[s.key] = s.value; 
+      }
+    });
     return NextResponse.json(settingsMap);
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

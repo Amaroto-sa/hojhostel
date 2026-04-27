@@ -82,7 +82,7 @@ export default async function AvailabilityPage() {
             <div className="flex gap-3">
               {listing.status !== "OCCUPIED" ? (
                 <>
-                  <Link href="/book" className="flex-1 text-center py-2.5 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-sm transition hover:shadow-[0_10px_30px_rgba(255,122,26,0.28)]">
+                  <Link href={`/book?listingId=${listing.id}`} className="flex-1 text-center py-2.5 rounded-full bg-gradient-to-br from-[#ff7a1a] to-[#ff9f5a] text-[#111] font-bold text-sm transition hover:shadow-[0_10px_30px_rgba(255,122,26,0.28)]">
                     Book Now
                   </Link>
                   <Link href={`${whatsappLink}?text=${encodeURIComponent(`Hi, I want to inquire about ${listing.title}`)}`} target="_blank" className="px-4 py-2.5 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white text-sm font-bold transition hover:bg-[rgba(255,255,255,0.1)]">

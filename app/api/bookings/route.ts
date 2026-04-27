@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { bookingSchema } from "@/lib/validations";
-import { calculateDueDate } from "@/lib/due-date";
 import { sendEmail, bookingSubmisionEmail, adminBookingNotificationEmail, sendTelegramNotification } from "@/lib/email";
 import { isIpRateLimited } from "@/lib/rate-limit";
 
@@ -105,7 +104,7 @@ export async function POST(request: Request) {
         durationCount: data.durationCount,
         residentName: data.residentName,
         residentPhone: data.residentPhone,
-        residentEmail: data.residentEmail || null,
+        residentEmail: data.residentEmail,
         residentAddress: data.residentAddress || null,
         emergencyContact: data.emergencyContact,
         emergencyRel: data.emergencyRel,

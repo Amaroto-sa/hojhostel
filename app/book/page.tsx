@@ -297,7 +297,7 @@ export default function BookPage() {
               </div>
               <div className="flex justify-between text-[#b1b1ba]">
                 <span>Email</span>
-                <span className="text-white font-medium text-xs">houseofjessehostel@gmail.com</span>
+                <span className="text-white font-medium text-xs">info@hojhostel.com</span>
               </div>
             </div>
           </div>

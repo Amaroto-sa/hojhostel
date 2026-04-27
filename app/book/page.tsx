@@ -26,7 +26,7 @@ export default function BookPage() {
     notes: "",
   });
 
-  const [accommodations, setAccommodations] = useState<{ id: string; label: string }[]>([]);
+  const [accommodations, setAccommodations] = useState<{ id: string; label: string; price: number }[]>([]);
 
   useEffect(() => {
     fetch("/api/listings")
@@ -35,7 +35,8 @@ export default function BookPage() {
         if (Array.isArray(data)) {
           const list = data.map((l: any) => ({
             id: l.id,
-            label: `${l.title} @ ${l.house?.name || "HOJ"} — ₦${l.price.toLocaleString()}/wk`
+            label: `${l.title} @ ${l.house?.name || "HOJ"} — ₦${l.price.toLocaleString()}/wk`,
+            price: l.price
           }));
           setAccommodations(list);
         }
@@ -97,6 +98,17 @@ export default function BookPage() {
     }
     setLoading(false);
   };
+
+  // Live Price Calculation explicitly matching the Backend Math
+  const selectedL = accommodations.find(a => a.id === form.listingId);
+  const baseWeekPrice = selectedL ? selectedL.price : 0;
+
+  let estimatedPrice = baseWeekPrice * form.durationCount;
+  if (form.duration === "MONTHLY") estimatedPrice = baseWeekPrice * 4 * form.durationCount;
+  else if (form.duration === "DAILY") estimatedPrice = (baseWeekPrice / 7) * form.durationCount;
+
+  // Prevent past dates
+  const todayStr = new Date().toISOString().split("T")[0];
 
   if (success) {
     return (
@@ -206,7 +218,7 @@ export default function BookPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-300">Preferred Check-in Date *</label>
-                <input type="date" name="checkInDate" value={form.checkInDate} onChange={handleChange} required
+                <input type="date" name="checkInDate" min={todayStr} value={form.checkInDate} onChange={handleChange} required
                   className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors" />
               </div>
             </div>
@@ -216,6 +228,19 @@ export default function BookPage() {
               <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} placeholder="Any special requests or questions..."
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors resize-none" />
             </div>
+
+            {/* Live Price Display */}
+            {selectedL && (
+              <div className="bg-[#ff7a1a]/10 border border-[#ff7a1a]/20 rounded-xl p-5 mt-4 flex justify-between items-center animate-in fade-in">
+                <div>
+                  <p className="text-sm text-[#ff7a1a] font-bold">Estimated Total Amount</p>
+                  <p className="text-xs text-gray-400 mt-1">{form.durationCount} {form.duration.toLowerCase()} @ {selectedL.label.split('—')[1]}</p>
+                </div>
+                <div className="text-2xl font-display text-white">
+                  ₦{Math.round(estimatedPrice).toLocaleString()}
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"

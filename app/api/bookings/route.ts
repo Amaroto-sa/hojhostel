@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     // Send booking confirmation email to client
     if (clientEmail) {
       const emailSetting = await prisma.setting.findUnique({ where: { key: "email_booking_received" } });
-      const customerEmailData = bookingSubmisionEmail(data.residentName, listing.house.name, emailSetting?.value || undefined);
+      const customerEmailData = bookingSubmisionEmail(data.residentName, listing.house?.name || "HOJ Hostel", emailSetting?.value || undefined);
       await sendEmail({ to: clientEmail, ...customerEmailData, type: "booking_confirmation" });
     }
 
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
       customerName: data.residentName,
       customerEmail: clientEmail || "Not provided",
       listingTitle: listing.title,
-      houseName: listing.house.name,
+      houseName: listing.house?.name || "HOJ Hostel",
       checkInDate: data.checkInDate,
       duration: data.duration,
       durationCount: data.durationCount,
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
 <b>Resident:</b> ${data.residentName} (${isVerified ? '✅ verified' : '❌ unverified'})
 <b>Email:</b> ${clientEmail || 'Not provided'}
 <b>Accommodation:</b> ${listing.title}
-<b>Location:</b> ${listing.house.name}
+<b>Location:</b> ${listing.house?.name || "HOJ Hostel"}
 <b>Duration:</b> ${data.durationCount} ${data.duration.toLowerCase()}
 <b>Total:</b> ₦${Math.round(totalPrice).toLocaleString()}
 <b>Check-in:</b> ${new Date(data.checkInDate).toDateString()}

@@ -11,10 +11,15 @@ export async function GET() {
     const settings = await prisma.setting.findMany();
     const settingsMap: Record<string, string> = {};
     
-    const publicKeys = ["whatsapp_number", "contact_email", "hostel_intro", "hero_image_url", "enable_guest_booking", "enable_user_auth"];
+    const sensitiveKeys = [
+      "notification_email", 
+      "email_booking_approved", 
+      "email_booking_rejected", 
+      "security_alerts_enabled"
+    ];
     
     settings.forEach((s) => { 
-      if (isAdmin || publicKeys.includes(s.key)) {
+      if (isAdmin || !sensitiveKeys.includes(s.key)) {
         settingsMap[s.key] = s.value; 
       }
     });

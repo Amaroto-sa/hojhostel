@@ -120,9 +120,9 @@ export async function PATCH(
         // Send a massive combined email containing BOTH banking details and house rules!
         const htmlContent = `
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0a0a0c;color:#f5f5f7;border-radius:16px;">
-            <h1 style="color:#4ade80;">Booking Approved ✅</h1>
+            <h1 style="color:#4ade80;">1 Bed Space Booking Confirmation ✅</h1>
             <p style="font-size:16px;">Hi ${booking.residentName},</p>
-            <p style="font-size:16px;">Congratulations! Your booking for <strong style="color:#ff7a1a;">${booking.listing.title}</strong> has been officially approved.</p>
+            <p style="font-size:16px;">Congratulations! Your single bed space reservation in <strong style="color:#ff7a1a;">${booking.listing.title}</strong> has been officially approved.</p>
             
             <div style="background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin:24px 0;border-left:4px solid #ff7a1a;">
               <h2 style="font-size:16px;margin-top:0;color:#ff7a1a;">Banking & Payment Instructions</h2>
@@ -147,7 +147,7 @@ export async function PATCH(
 
         await sendEmail({
           to: clientEmail,
-          subject: "Booking Approved! Payment Instructions inside ✅",
+          subject: "1 Bed Space Booking Confirmation - Payment Instructions Inside ✅",
           html: htmlContent,
           type: "booking_approved_combined"
         });

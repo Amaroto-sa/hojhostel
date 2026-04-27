@@ -47,7 +47,7 @@ export default function AdminBookingsPage() {
       `"${(b.residentName || '').replace(/"/g, '""')}"`,
       `"${(b.residentEmail || b.user?.email || '').replace(/"/g, '""')}"`,
       `"${b.residentPhone || ''}"`,
-      `"${(b.listing?.title || '').replace(/"/g, '""')}"`,
+      `"1 Space in [${(b.listing?.title || '').replace(/"/g, '""')}]"`,
       `"${new Date(b.checkInDate).toLocaleDateString()}"`,
       `"${b.durationCount} ${b.duration}"`,
       `"${b.status}"`,
@@ -138,8 +138,8 @@ export default function AdminBookingsPage() {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4 pb-4 border-b border-[rgba(255,255,255,0.06)]">
                 <div>
-                  <span className="text-gray-500 block mb-1">Accommodation</span>
-                  <span className="text-white font-medium">{booking.listing?.title}</span>
+                  <span className="text-gray-500 block mb-1">Requested Space</span>
+                  <span className="text-white font-medium">1 Space in [{booking.listing?.title}]</span>
                 </div>
                 <div>
                   <span className="text-gray-500 block mb-1">House</span>

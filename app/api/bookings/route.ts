@@ -94,19 +94,7 @@ export async function POST(request: Request) {
       totalPrice = (listing.price / 7) * data.durationCount;
     }
 
-    // Deep DB Check: Stop accidental dual-clicks or deliberate duplicate spam
-    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
-    const existingSpamBooking = await prisma.booking.findFirst({
-      where: {
-        listingId: data.listingId,
-        residentName: data.residentName,
-        createdAt: { gte: fifteenMinsAgo }
-      }
-    });
-
-    if (existingSpamBooking) {
-      return NextResponse.json({ error: "You recently requested this identical space. Please wait for host approval or check your email." }, { status: 429 });
-    }
+    // Antispam duplicate check removed to allow users to book multiple spaces seamlessly if desired.
 
     const booking = await prisma.booking.create({
       data: {
@@ -170,7 +158,7 @@ export async function POST(request: Request) {
 <b>🚨 New Booking Request</b>
 <b>Resident:</b> ${data.residentName} (${isVerified ? '✅ verified' : '❌ unverified'})
 <b>Email:</b> ${clientEmail || 'Not provided'}
-<b>Accommodation:</b> ${listing.title}
+<b>Accommodation:</b> 1 Space in [${listing.title}]
 <b>Location:</b> ${listing.house?.name || "HOJ Hostel"}
 <b>Duration:</b> ${data.durationCount} ${data.duration.toLowerCase()}
 <b>Total:</b> ₦${Math.round(totalPrice).toLocaleString()}

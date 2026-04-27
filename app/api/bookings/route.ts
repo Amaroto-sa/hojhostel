@@ -82,8 +82,46 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
     }
 
-    if (listing.status === "OCCUPIED" || listing.occupied >= listing.capacity) {
-      return NextResponse.json({ error: "This accommodation is fully occupied" }, { status: 400 });
+    // Advanced Capacity Check for Future Dates
+    const requestedCheckIn = new Date(data.checkInDate);
+    const requestedCheckOut = new Date(requestedCheckIn);
+    if (data.duration === "DAILY") requestedCheckOut.setDate(requestedCheckOut.getDate() + data.durationCount);
+    else if (data.duration === "WEEKLY") requestedCheckOut.setDate(requestedCheckOut.getDate() + data.durationCount * 7);
+    else if (data.duration === "MONTHLY") requestedCheckOut.setMonth(requestedCheckOut.getMonth() + data.durationCount);
+
+    const activeResidents = await prisma.resident.findMany({
+      where: {
+        listingId: data.listingId,
+        status: "ACTIVE",
+        checkInDate: { lt: requestedCheckOut },
+        dueDate: { gt: requestedCheckIn }
+      }
+    });
+
+    const pendingBookings = await prisma.booking.findMany({
+      where: {
+        listingId: data.listingId,
+        status: { in: ["PENDING", "APPROVED"] },
+        checkInDate: { lt: requestedCheckOut }
+      }
+    });
+    
+    let overlappingPending = 0;
+    for (const b of pendingBookings) {
+      const bOut = new Date(b.checkInDate);
+      if (b.duration === "DAILY") bOut.setDate(bOut.getDate() + b.durationCount);
+      else if (b.duration === "WEEKLY") bOut.setDate(bOut.getDate() + b.durationCount * 7);
+      else if (b.duration === "MONTHLY") bOut.setMonth(bOut.getMonth() + b.durationCount);
+      
+      if (bOut > requestedCheckIn) {
+        overlappingPending++;
+      }
+    }
+
+    const totalOverlapping = activeResidents.length + overlappingPending;
+
+    if (totalOverlapping + data.quantity > listing.capacity) {
+      return NextResponse.json({ error: `Not enough availability. Only ${Math.max(0, listing.capacity - totalOverlapping)} space(s) available for these dates.` }, { status: 400 });
     }
 
     let totalPrice = listing.price * data.durationCount;
@@ -95,24 +133,30 @@ export async function POST(request: Request) {
 
     // Antispam duplicate check removed to allow users to book multiple spaces seamlessly if desired.
 
-    const booking = await prisma.booking.create({
-      data: {
-        userId: session?.user?.id || null,
-        listingId: data.listingId,
-        checkInDate: new Date(data.checkInDate),
-        duration: data.duration,
-        durationCount: data.durationCount,
-        residentName: data.residentName,
-        residentPhone: data.residentPhone,
-        residentEmail: data.residentEmail,
-        residentAddress: data.residentAddress || null,
-        emergencyContact: data.emergencyContact,
-        emergencyRel: data.emergencyRel,
-        notes: data.notes || null,
-        totalPrice: Math.round(totalPrice),
-        status: "PENDING",
-      },
-    });
+    const bookings = [];
+    for (let i = 0; i < data.quantity; i++) {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: session?.user?.id || null,
+          listingId: data.listingId,
+          checkInDate: requestedCheckIn,
+          duration: data.duration,
+          durationCount: data.durationCount,
+          residentName: data.quantity > 1 ? `${data.residentName} (Space ${i + 1})` : data.residentName,
+          residentPhone: data.residentPhone,
+          residentEmail: data.residentEmail,
+          residentAddress: data.residentAddress || null,
+          emergencyContact: data.emergencyContact,
+          emergencyRel: data.emergencyRel,
+          notes: data.notes || null,
+          totalPrice: Math.round(totalPrice),
+          status: "PENDING",
+        },
+      });
+      bookings.push(booking);
+    }
+    
+    const booking = bookings[0]; // Main reference for emails
 
     // Determine the best email to reach the client
     // Priority: residentEmail from form > session user email

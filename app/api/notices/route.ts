@@ -25,16 +25,20 @@ export async function POST(request: Request) {
 
         // 🚨 CRITICAL FIX: The CEO expected broadcasts to actually send emails!
         // Fetch all active residents and email them the custom broadcast.
-        const activeUsers = await prisma.user.findMany({
-            where: {
-                customerProfile: {
-                    residents: { some: { status: "ACTIVE" } }
-                }
-            },
+        const activeResidents = await prisma.resident.findMany({
+            where: { status: "ACTIVE" },
             select: { email: true, name: true }
         });
 
-        const sendPromises = activeUsers.map(u => {
+        // Deduplicate by email to prevent spamming residents with multiple spaces
+        const uniqueResidents = new Map();
+        activeResidents.forEach(r => {
+            if (r.email && !uniqueResidents.has(r.email)) {
+                uniqueResidents.set(r.email, r);
+            }
+        });
+
+        const sendPromises = Array.from(uniqueResidents.values()).map(u => {
             if (!u.email) return Promise.resolve();
             return sendEmail({
                 to: u.email,

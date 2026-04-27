@@ -17,7 +17,6 @@ export default function BookPage() {
     checkInDate: "",
     duration: "WEEKLY",
     durationCount: 1,
-    quantity: 1,
     residentName: "",
     residentPhone: "",
     residentEmail: "",
@@ -90,7 +89,6 @@ export default function BookPage() {
         body: JSON.stringify({
           ...form,
           durationCount: Number(form.durationCount),
-          quantity: Number(form.quantity),
         }),
       });
 
@@ -113,23 +111,9 @@ export default function BookPage() {
   const selectedL = accommodations.find(a => a.id === form.listingId);
   const baseWeekPrice = selectedL ? selectedL.price : 0;
 
-  let estimatedPrice = baseWeekPrice * form.durationCount * form.quantity;
-  if (form.duration === "MONTHLY") estimatedPrice = baseWeekPrice * 4 * form.durationCount * form.quantity;
-  else if (form.duration === "DAILY") estimatedPrice = (baseWeekPrice / 7) * form.durationCount * form.quantity;
-
-  // Calculate Check-out Date
-  let checkoutDateStr = "";
-  if (form.checkInDate && form.durationCount > 0) {
-    const d = new Date(form.checkInDate);
-    if (form.duration === "DAILY") {
-      d.setDate(d.getDate() + Number(form.durationCount));
-    } else if (form.duration === "WEEKLY") {
-      d.setDate(d.getDate() + (Number(form.durationCount) * 7));
-    } else if (form.duration === "MONTHLY") {
-      d.setMonth(d.getMonth() + Number(form.durationCount));
-    }
-    checkoutDateStr = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-  }
+  let estimatedPrice = baseWeekPrice * form.durationCount;
+  if (form.duration === "MONTHLY") estimatedPrice = baseWeekPrice * 4 * form.durationCount;
+  else if (form.duration === "DAILY") estimatedPrice = (baseWeekPrice / 7) * form.durationCount;
 
   // Prevent past dates
   const todayStr = new Date().toISOString().split("T")[0];
@@ -220,22 +204,15 @@ export default function BookPage() {
             <hr className="border-[rgba(255,255,255,0.08)]" />
             <h2 className="font-display text-xl mb-1">Booking Details</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-300">Accommodation Type *</label>
-                <select name="listingId" value={form.listingId} onChange={handleChange} required
-                  className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors">
-                  <option value="" className="bg-[#0a0a0c]">Select accommodation</option>
-                  {accommodations.map((a) => (
-                    <option key={a.id} value={a.id} className="bg-[#0a0a0c]">{a.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-300">Number of Spaces *</label>
-                <input type="number" name="quantity" value={form.quantity} onChange={handleChange} min="1" required
-                  className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors" />
-              </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-300">Accommodation Type *</label>
+              <select name="listingId" value={form.listingId} onChange={handleChange} required
+                className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors">
+                <option value="" className="bg-[#0a0a0c]">Select accommodation</option>
+                {accommodations.map((a) => (
+                  <option key={a.id} value={a.id} className="bg-[#0a0a0c]">{a.label}</option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -266,19 +243,12 @@ export default function BookPage() {
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors resize-none" />
             </div>
 
-            {checkoutDateStr && (
-              <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 flex items-center justify-between text-sm">
-                <span className="text-gray-400">Estimated Check-out Date:</span>
-                <strong className="text-white">{checkoutDateStr}</strong>
-              </div>
-            )}
-
             {/* Live Price Display */}
             {selectedL && (
               <div className="bg-[#ff7a1a]/10 border border-[#ff7a1a]/20 rounded-xl p-5 mt-4 flex justify-between items-center animate-in fade-in">
                 <div>
                   <p className="text-sm text-[#ff7a1a] font-bold">Estimated Total Amount</p>
-                  <p className="text-xs text-gray-400 mt-1">{form.durationCount} {form.duration.toLowerCase()} × {form.quantity} space(s)</p>
+                  <p className="text-xs text-gray-400 mt-1">{form.durationCount} {form.duration.toLowerCase()} @ {selectedL.label.split('—')[1]}</p>
                 </div>
                 <div className="text-2xl font-display text-white">
                   ₦{Math.round(estimatedPrice).toLocaleString()}

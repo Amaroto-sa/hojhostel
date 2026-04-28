@@ -16,7 +16,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status } = body;
+    const { status, checkInDate: overrideCheckInDate } = body;
 
     const booking = await prisma.booking.findUnique({
       where: { id: params.id },
@@ -30,10 +30,22 @@ export async function PATCH(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // Update booking status
+    // Allow admin to override check-in date (e.g., backdate for late arrivals)
+    const actualCheckInDate = overrideCheckInDate
+      ? new Date(overrideCheckInDate)
+      : new Date(booking.checkInDate);
+
+    if (overrideCheckInDate && isNaN(actualCheckInDate.getTime())) {
+      return NextResponse.json({ error: "Invalid check-in date provided" }, { status: 400 });
+    }
+
+    // Update booking status (and check-in date if admin overrode it)
     const updated = await prisma.booking.update({
       where: { id: params.id },
-      data: { status },
+      data: {
+        status,
+        ...(overrideCheckInDate ? { checkInDate: actualCheckInDate } : {}),
+      },
     });
 
     // Determine client email: residentEmail from booking form > user account email
@@ -42,7 +54,7 @@ export async function PATCH(
     // If approved, create resident record and update occupancy
     if (status === "APPROVED") {
       const dueDate = calculateDueDate(
-        new Date(booking.checkInDate),
+        actualCheckInDate,
         booking.duration,
         booking.durationCount
       );
@@ -75,7 +87,7 @@ export async function PATCH(
           address: booking.residentAddress,
           emergencyContact: booking.emergencyContact,
           emergencyRel: booking.emergencyRel,
-          checkInDate: booking.checkInDate,
+          checkInDate: actualCheckInDate,
           duration: booking.duration,
           durationCount: booking.durationCount,
           dueDate,

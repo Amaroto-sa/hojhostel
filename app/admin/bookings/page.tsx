@@ -1,13 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Clock, Eye, Search, Download } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Eye, Search, Download, X, AlertTriangle } from "lucide-react";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Approval modal state (allows admin to set/backdate check-in date)
+  const [approvalModal, setApprovalModal] = useState<{ open: boolean; booking: any | null }>({ open: false, booking: null });
+  const [approvalCheckInDate, setApprovalCheckInDate] = useState("");
+  const [approving, setApproving] = useState(false);
 
   useEffect(() => { fetchBookings(); }, []);
 
@@ -25,6 +30,66 @@ export default function AdminBookingsPage() {
       body: JSON.stringify({ status }),
     });
     fetchBookings();
+  }
+
+  // Open approval modal — pre-fills with the booking's original check-in date
+  function openApprovalModal(booking: any) {
+    const d = new Date(booking.checkInDate);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    setApprovalCheckInDate(dateStr);
+    setApprovalModal({ open: true, booking });
+  }
+
+  // Approve with optional check-in date override (supports backdating)
+  async function handleApprove() {
+    if (!approvalModal.booking) return;
+    setApproving(true);
+    try {
+      const res = await fetch(`/api/bookings/${approvalModal.booking.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "APPROVED",
+          checkInDate: approvalCheckInDate,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to approve booking");
+        setApproving(false);
+        return;
+      }
+      setApprovalModal({ open: false, booking: null });
+      fetchBookings();
+    } catch {
+      alert("Failed to approve. Please try again.");
+    }
+    setApproving(false);
+  }
+
+  // Preview the calculated due date in the approval modal
+  function previewDueDate() {
+    if (!approvalModal.booking || !approvalCheckInDate) return "";
+    const checkIn = new Date(approvalCheckInDate);
+    if (isNaN(checkIn.getTime())) return "Invalid date";
+    const count = approvalModal.booking.durationCount || 1;
+    const duration = approvalModal.booking.duration;
+    const due = new Date(checkIn);
+    switch (duration) {
+      case "DAILY": due.setDate(due.getDate() + count); break;
+      case "WEEKLY": due.setDate(due.getDate() + count * 7); break;
+      case "MONTHLY": due.setMonth(due.getMonth() + count); break;
+    }
+    return due.toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
+  }
+
+  // Check if the selected approval date is in the past
+  function isCheckInPast() {
+    if (!approvalCheckInDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(approvalCheckInDate);
+    return selected < today;
   }
 
   const filtered = bookings.filter((b: any) => {
@@ -181,7 +246,7 @@ export default function AdminBookingsPage() {
 
               {booking.status === "PENDING" && (
                 <div className="flex gap-3">
-                  <button onClick={() => updateStatus(booking.id, "APPROVED")}
+                  <button onClick={() => openApprovalModal(booking)}
                     className="flex items-center gap-2 px-5 py-2 rounded-full bg-green-500/20 text-green-400 text-sm font-bold border border-green-500/20 hover:bg-green-500/30 transition">
                     <CheckCircle size={16} /> Approve
                   </button>
@@ -207,6 +272,79 @@ export default function AdminBookingsPage() {
           ))
         )}
       </div>
+
+      {/* ── APPROVAL MODAL (supports backdating check-in) ── */}
+      {approvalModal.open && approvalModal.booking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#14141a] border border-[rgba(255,255,255,0.1)] rounded-2xl shadow-2xl w-full max-w-md p-6 md:p-8 relative">
+            <button onClick={() => setApprovalModal({ open: false, booking: null })}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition"><X size={20} /></button>
+
+            <h2 className="font-display text-2xl text-white mb-1">Approve Booking</h2>
+            <p className="text-[#b1b1ba] text-sm mb-6">Confirm check-in details for <strong className="text-white">{approvalModal.booking.residentName}</strong></p>
+
+            {/* Booking summary */}
+            <div className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 mb-6 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Accommodation</span>
+                <span className="text-white font-medium">{approvalModal.booking.listing?.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">House</span>
+                <span className="text-white font-medium">{approvalModal.booking.listing?.house?.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Duration</span>
+                <span className="text-white font-medium">{approvalModal.booking.durationCount} {approvalModal.booking.duration?.toLowerCase()}</span>
+              </div>
+              {approvalModal.booking.totalPrice && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Est. Total</span>
+                  <span className="text-[#ff7a1a] font-bold">₦{approvalModal.booking.totalPrice?.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Editable check-in date — NO min restriction so admin can backdate */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2 text-gray-300">Check-In Date</label>
+              <input
+                type="date"
+                value={approvalCheckInDate}
+                onChange={(e) => setApprovalCheckInDate(e.target.value)}
+                className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors"
+              />
+              <p className="text-xs text-gray-500 mt-1.5">You can set a past date if the guest checked in earlier than scheduled.</p>
+            </div>
+
+            {/* Past date warning */}
+            {isCheckInPast() && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 mb-4 text-sm text-yellow-400 flex items-start gap-2">
+                <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                <span>This check-in date is in the past. The due date will be calculated from this backdated date.</span>
+              </div>
+            )}
+
+            {/* Calculated due date preview */}
+            <div className="bg-[rgba(255,122,26,0.08)] border border-[rgba(255,122,26,0.15)] rounded-xl p-4 mb-6 flex items-center justify-between">
+              <span className="text-sm text-[#ffd2b0] font-medium">Calculated Due Date</span>
+              <span className="text-[#ff7a1a] font-bold text-lg">{previewDueDate()}</span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button onClick={() => setApprovalModal({ open: false, booking: null })}
+                className="flex-1 py-3 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-white font-medium text-sm hover:bg-[rgba(255,255,255,0.08)] transition">
+                Cancel
+              </button>
+              <button onClick={handleApprove} disabled={approving || !approvalCheckInDate}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white font-bold text-sm disabled:opacity-50 shadow-lg hover:scale-[1.01] transition-transform flex items-center justify-center gap-2">
+                <CheckCircle size={16} /> {approving ? "Approving..." : "Confirm Approval"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -16,7 +16,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status } = body;
+    const { status, checkInOverride, priceOverride, adminNotes } = body;
 
     const booking = await prisma.booking.findUnique({
       where: { id: params.id },
@@ -30,11 +30,28 @@ export async function PATCH(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // Update booking status
+    // Build update payload with any admin overrides
+    const updateData: Record<string, any> = { status };
+    if (status === "APPROVED" && checkInOverride) {
+      updateData.checkInDate = new Date(checkInOverride);
+    }
+    if (status === "APPROVED" && priceOverride !== undefined && priceOverride !== null) {
+      updateData.totalPrice = Number(priceOverride);
+    }
+    if (adminNotes) {
+      updateData.notes = booking.notes
+        ? `${booking.notes}\n[Admin] ${adminNotes}`
+        : `[Admin] ${adminNotes}`;
+    }
+
     const updated = await prisma.booking.update({
       where: { id: params.id },
-      data: { status },
+      data: updateData,
     });
+
+    // Use overridden values or fall back to originals
+    const effectiveCheckIn = checkInOverride ? new Date(checkInOverride) : new Date(booking.checkInDate);
+    const effectivePrice = (priceOverride !== undefined && priceOverride !== null) ? Number(priceOverride) : booking.totalPrice;
 
     // Determine client email: residentEmail from booking form > user account email
     const clientEmail = booking.residentEmail || booking.user?.email || null;
@@ -42,7 +59,7 @@ export async function PATCH(
     // If approved, create resident record and update occupancy
     if (status === "APPROVED") {
       const dueDate = calculateDueDate(
-        new Date(booking.checkInDate),
+        effectiveCheckIn,
         booking.duration,
         booking.durationCount
       );
@@ -75,7 +92,7 @@ export async function PATCH(
           address: booking.residentAddress,
           emergencyContact: booking.emergencyContact,
           emergencyRel: booking.emergencyRel,
-          checkInDate: booking.checkInDate,
+          checkInDate: effectiveCheckIn,
           duration: booking.duration,
           durationCount: booking.durationCount,
           dueDate,
@@ -83,7 +100,7 @@ export async function PATCH(
           receipts: {
             create: {
               receiptNumber,
-              amount: booking.totalPrice || 0,
+              amount: effectivePrice || 0,
               description: `Booking payment for ${booking.durationCount} ${booking.duration.toLowerCase()}`,
               type: "BOOKING",
               userId: booking.userId || null,

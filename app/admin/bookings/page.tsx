@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { CheckCircle, XCircle, Clock, Eye, Search, Download } from "lucide-react";
 
 export default function AdminBookingsPage() {
@@ -218,9 +219,9 @@ export default function AdminBookingsPage() {
         )}
       </div>
 
-      {approvalModal.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#111] border border-white/10 p-6 md:p-8 rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+      {approvalModal.isOpen && typeof window !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-start pt-[15vh] justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-[#111] border border-white/10 p-6 md:p-8 rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in slide-in-from-top-10 duration-200 mb-10">
             <h2 className="text-2xl font-display text-white mb-2">Approve Booking</h2>
             <p className="text-gray-400 text-sm mb-6">Review details for <strong className="text-white">{approvalModal.residentName}</strong>.</p>
 
@@ -263,7 +264,8 @@ export default function AdminBookingsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

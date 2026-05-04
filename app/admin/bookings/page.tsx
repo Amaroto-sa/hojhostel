@@ -1,119 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Search, Download, X, Calendar, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Eye, Search, Download } from "lucide-react";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Approval Modal
-  const [approvalModal, setApprovalModal] = useState<any>(null);
-  const [approvalForm, setApprovalForm] = useState({ checkInDate: "", priceOverride: "", adminNotes: "" });
-  const [modalLoading, setModalLoading] = useState(false);
-
-  // Rejection Modal
-  const [rejectModal, setRejectModal] = useState<any>(null);
-  const [rejectReason, setRejectReason] = useState("");
+  const [approvalModal, setApprovalModal] = useState({ isOpen: false, bookingId: "", residentName: "", checkInDate: "", adminNotes: "" });
 
   useEffect(() => { fetchBookings(); }, []);
 
   async function fetchBookings() {
-    try {
-      const res = await fetch("/api/bookings");
-      if (res.ok) setBookings(await res.json());
-    } catch {
-      // network error
-    }
+    const res = await fetch("/api/bookings");
+    setBookings(await res.json());
     setLoading(false);
   }
 
-  // --- Modal openers ---
-
-  function openApprovalModal(booking: any) {
-    setApprovalForm({
-      checkInDate: new Date(booking.checkInDate).toISOString().split("T")[0],
-      priceOverride: booking.totalPrice?.toString() || "",
-      adminNotes: "",
-    });
-    setModalLoading(false);
-    setApprovalModal(booking);
-  }
-
-  function openRejectModal(booking: any) {
-    setRejectReason("");
-    setModalLoading(false);
-    setRejectModal(booking);
-  }
-
-  // --- Modal confirmations ---
-
-  async function confirmApproval() {
-    if (!approvalModal) return;
-    setModalLoading(true);
-    try {
-      const res = await fetch(`/api/bookings/${approvalModal.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "APPROVED",
-          checkInOverride: approvalForm.checkInDate || undefined,
-          priceOverride: approvalForm.priceOverride ? Number(approvalForm.priceOverride) : undefined,
-          adminNotes: approvalForm.adminNotes || undefined,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || "Failed to approve booking.");
-      } else {
-        setApprovalModal(null);
-        fetchBookings();
-      }
-    } catch {
-      alert("Network error. Please try again.");
-    }
-    setModalLoading(false);
-  }
-
-  async function confirmRejection() {
-    if (!rejectModal) return;
-    setModalLoading(true);
-    try {
-      const res = await fetch(`/api/bookings/${rejectModal.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "REJECTED", adminNotes: rejectReason || undefined }),
-      });
-      if (!res.ok) {
-        alert("Failed to reject booking.");
-      } else {
-        setRejectModal(null);
-        fetchBookings();
-      }
-    } catch {
-      alert("Network error. Please try again.");
-    }
-    setModalLoading(false);
-  }
-
-  // --- Simple status update (for Complete / Cancel on approved) ---
-
-  async function updateStatus(id: string, status: string) {
-    if (!window.confirm(`Are you sure you want to mark this booking as ${status}?`)) return;
+  async function updateStatus(id: string, status: string, overrides: any = {}) {
+    if (status !== "APPROVED" && !window.confirm(`Are you sure you want to mark this booking as ${status}?`)) return;
     await fetch(`/api/bookings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, ...overrides }),
     });
     fetchBookings();
   }
 
-  // --- Filters ---
+  function handleApproveSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    updateStatus(approvalModal.bookingId, "APPROVED", {
+      checkInDate: approvalModal.checkInDate,
+      adminNotes: approvalModal.adminNotes
+    });
+    setApprovalModal(prev => ({ ...prev, isOpen: false }));
+  }
 
   const filtered = bookings.filter((b: any) => {
     const matchesFilter = filter === "all" || b.status === filter;
+
     const q = searchQuery.toLowerCase();
     const matchesSearch = !q ||
       b.residentName?.toLowerCase().includes(q) ||
@@ -122,15 +48,9 @@ export default function AdminBookingsPage() {
       b.residentPhone?.includes(q) ||
       b.listing?.title?.toLowerCase().includes(q) ||
       b.listing?.house?.name?.toLowerCase().includes(q);
+
     return matchesFilter && matchesSearch;
   });
-
-  const counts = bookings.reduce((acc: Record<string, number>, b: any) => {
-    acc[b.status] = (acc[b.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  // --- CSV Export ---
 
   function exportCSV() {
     const headers = ["Resident Name", "Email", "Phone", "Accommodation", "Check In", "Duration", "Status", "Total Price"];
@@ -193,17 +113,12 @@ export default function AdminBookingsPage() {
             />
           </div>
 
-          {/* Status Tabs with Counts */}
+          {/* Status Tabs */}
           <div className="flex gap-2 w-full sm:w-auto overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
             {["all", "PENDING", "APPROVED", "REJECTED", "CANCELLED", "COMPLETED"].map((f) => (
               <button key={f} onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${filter === f ? 'bg-[#ff7a1a] text-[#111]' : 'bg-[rgba(255,255,255,0.05)] text-[#b1b1ba] border border-[rgba(255,255,255,0.08)]'}`}>
+                className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${filter === f ? 'bg-[#ff7a1a] text-[#111]' : 'bg-[rgba(255,255,255,0.05)] text-[#b1b1ba] border border-[rgba(255,255,255,0.08)]'}`}>
                 {f === "all" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
-                {f === "all" ? (
-                  <span className={`text-[10px] ${filter === f ? 'text-[#111]/60' : 'text-gray-500'}`}>({bookings.length})</span>
-                ) : counts[f] ? (
-                  <span className={`text-[10px] ${filter === f ? 'text-[#111]/60' : 'text-gray-500'}`}>({counts[f]})</span>
-                ) : null}
               </button>
             ))}
           </div>
@@ -276,11 +191,11 @@ export default function AdminBookingsPage() {
 
               {booking.status === "PENDING" && (
                 <div className="flex gap-3">
-                  <button onClick={() => openApprovalModal(booking)}
+                  <button onClick={() => setApprovalModal({ isOpen: true, bookingId: booking.id, residentName: booking.residentName, checkInDate: new Date(booking.checkInDate).toISOString().split('T')[0], adminNotes: "" })}
                     className="flex items-center gap-2 px-5 py-2 rounded-full bg-green-500/20 text-green-400 text-sm font-bold border border-green-500/20 hover:bg-green-500/30 transition">
                     <CheckCircle size={16} /> Approve
                   </button>
-                  <button onClick={() => openRejectModal(booking)}
+                  <button onClick={() => updateStatus(booking.id, "REJECTED")}
                     className="flex items-center gap-2 px-5 py-2 rounded-full bg-red-500/20 text-red-400 text-sm font-bold border border-red-500/20 hover:bg-red-500/30 transition">
                     <XCircle size={16} /> Reject
                   </button>
@@ -303,179 +218,50 @@ export default function AdminBookingsPage() {
         )}
       </div>
 
-      {/* ═══════════════════════ APPROVAL MODAL ═══════════════════════ */}
-      {approvalModal && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={() => !modalLoading && setApprovalModal(null)}>
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-          <div
-            className="relative w-full md:max-w-[520px] max-h-[92vh] overflow-y-auto bg-[#111113] border border-white/10 rounded-t-3xl md:rounded-2xl p-6 md:p-8 animate-in slide-in-from-bottom md:slide-in-from-bottom-0 md:zoom-in-95 duration-200"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Close */}
-            <button onClick={() => !modalLoading && setApprovalModal(null)} className="absolute top-4 right-4 p-1 text-gray-500 hover:text-white transition rounded-lg hover:bg-white/10">
-              <X size={20} />
-            </button>
+      {approvalModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#111] border border-white/10 p-6 md:p-8 rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h2 className="text-2xl font-display text-white mb-2">Approve Booking</h2>
+            <p className="text-gray-400 text-sm mb-6">Review details for <strong className="text-white">{approvalModal.residentName}</strong>.</p>
 
-            <h2 className="font-display text-2xl text-white mb-1">Approve Booking</h2>
-            <p className="text-sm text-[#b1b1ba] mb-6">Review and confirm details before approving.</p>
-
-            {/* Booking Summary */}
-            <div className="bg-white/5 border border-white/[0.08] rounded-xl p-4 mb-6">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <p className="font-bold text-white">{approvalModal.residentName}</p>
-                  <p className="text-xs text-[#b1b1ba]">{approvalModal.residentEmail || approvalModal.user?.email || "No email"} · {approvalModal.residentPhone}</p>
-                </div>
-                <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-400 text-[10px] font-bold rounded-full">PENDING</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <span className="text-gray-500 block mb-0.5">Accommodation</span>
-                  <span className="text-white font-medium">{approvalModal.listing?.title}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 block mb-0.5">House</span>
-                  <span className="text-white font-medium">{approvalModal.listing?.house?.name}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 block mb-0.5">Duration</span>
-                  <span className="text-white font-medium">{approvalModal.durationCount} {approvalModal.duration?.toLowerCase()}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 block mb-0.5">Original Price</span>
-                  <span className="text-white font-medium">₦{approvalModal.totalPrice?.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Override Fields */}
-            <div className="space-y-4 mb-6">
+            <form onSubmit={handleApproveSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-                  <Calendar size={14} className="text-[#ff7a1a]" />
-                  Check-in Date
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Confirmed Check-In Date</label>
                 <input
                   type="date"
-                  value={approvalForm.checkInDate}
-                  onChange={e => setApprovalForm(f => ({ ...f, checkInDate: e.target.value }))}
-                  className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors"
-                />
-                <p className="text-[11px] text-gray-500 mt-1.5">You can backdate this for residents who already checked in.</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Total Price (₦)
-                </label>
-                <input
-                  type="number"
-                  value={approvalForm.priceOverride}
-                  onChange={e => setApprovalForm(f => ({ ...f, priceOverride: e.target.value }))}
-                  className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors"
-                  placeholder="Leave as-is or override"
-                  min="0"
+                  value={approvalModal.checkInDate}
+                  onChange={(e) => setApprovalModal({ ...approvalModal, checkInDate: e.target.value })}
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a]"
                 />
               </div>
-
+              
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Admin Notes <span className="text-gray-500 font-normal">(optional)</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Admin Notes (Optional)</label>
                 <textarea
-                  value={approvalForm.adminNotes}
-                  onChange={e => setApprovalForm(f => ({ ...f, adminNotes: e.target.value }))}
-                  rows={2}
-                  placeholder="Internal note for this approval..."
-                  className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors resize-none"
+                  value={approvalModal.adminNotes}
+                  onChange={(e) => setApprovalModal({ ...approvalModal, adminNotes: e.target.value })}
+                  placeholder="Will be appended to booking notes..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] min-h-[100px] resize-none"
                 />
               </div>
-            </div>
 
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setApprovalModal(null)}
-                disabled={modalLoading}
-                className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmApproval}
-                disabled={modalLoading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/20 text-green-400 font-bold text-sm border border-green-500/20 hover:bg-green-500/30 transition disabled:opacity-50"
-              >
-                {modalLoading ? (
-                  <><Loader2 size={16} className="animate-spin" /> Approving...</>
-                ) : (
-                  <><CheckCircle size={16} /> Confirm Approval</>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════ REJECTION MODAL ═══════════════════════ */}
-      {rejectModal && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={() => !modalLoading && setRejectModal(null)}>
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-          <div
-            className="relative w-full md:max-w-[460px] bg-[#111113] border border-white/10 rounded-t-3xl md:rounded-2xl p-6 md:p-8 animate-in slide-in-from-bottom md:slide-in-from-bottom-0 md:zoom-in-95 duration-200"
-            onClick={e => e.stopPropagation()}
-          >
-            <button onClick={() => !modalLoading && setRejectModal(null)} className="absolute top-4 right-4 p-1 text-gray-500 hover:text-white transition rounded-lg hover:bg-white/10">
-              <X size={20} />
-            </button>
-
-            <h2 className="font-display text-2xl text-white mb-1">Reject Booking</h2>
-            <p className="text-sm text-[#b1b1ba] mb-6">This will notify <strong className="text-white">{rejectModal.residentName}</strong> via email.</p>
-
-            <div className="bg-white/5 border border-white/[0.08] rounded-xl p-4 mb-6">
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <span className="text-gray-500 block mb-0.5">Accommodation</span>
-                  <span className="text-white font-medium">{rejectModal.listing?.title}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 block mb-0.5">House</span>
-                  <span className="text-white font-medium">{rejectModal.listing?.house?.name}</span>
-                </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setApprovalModal({ ...approvalModal, isOpen: false })}
+                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 text-white font-bold hover:bg-white/10 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 transition shadow-[0_4px_14px_0_rgba(34,197,94,0.39)]"
+                >
+                  Confirm Approval
+                </button>
               </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">Rejection Reason <span className="text-gray-500 font-normal">(optional)</span></label>
-              <textarea
-                value={rejectReason}
-                onChange={e => setRejectReason(e.target.value)}
-                rows={3}
-                placeholder="e.g. No availability, duplicate request..."
-                className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors resize-none"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setRejectModal(null)}
-                disabled={modalLoading}
-                className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmRejection}
-                disabled={modalLoading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/20 text-red-400 font-bold text-sm border border-red-500/20 hover:bg-red-500/30 transition disabled:opacity-50"
-              >
-                {modalLoading ? (
-                  <><Loader2 size={16} className="animate-spin" /> Rejecting...</>
-                ) : (
-                  <><XCircle size={16} /> Confirm Rejection</>
-                )}
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}

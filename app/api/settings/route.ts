@@ -37,6 +37,20 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    
+    if (body.bulk && Array.isArray(body.settings)) {
+      const results = [];
+      for (const s of body.settings) {
+        const setting = await prisma.setting.upsert({
+          where: { key: s.key },
+          update: { value: s.value },
+          create: { key: s.key, value: s.value },
+        });
+        results.push(setting);
+      }
+      return NextResponse.json(results);
+    }
+
     const { key, value } = body;
 
     if (!key || value === undefined) {

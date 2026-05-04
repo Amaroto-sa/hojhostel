@@ -79,7 +79,7 @@ export async function sendEmail({ to, subject, html, type = "general", replyTo }
 
 
 // Pre-built email templates
-export function bookingSubmisionEmail(customerName: string, houseName: string, customText?: string) {
+export function bookingSubmisionEmail(customerName: string, houseName: string, customText?: string, bookingRef?: string) {
   const messageHtml = customText
     ? customText.replace(/\n/g, '<br />')
     : "Our team will review your request. You will receive an email once it is approved or if more information is needed.";
@@ -91,6 +91,7 @@ export function bookingSubmisionEmail(customerName: string, houseName: string, c
         <h1 style="color:#ff7a1a;font-size:24px;margin-bottom:20px;">Reservation Request Received</h1>
         <p style="font-size:16px;line-height:1.6;">Hi ${customerName},</p>
         <p style="font-size:16px;line-height:1.6;">Your single bed space reservation request at <strong>${houseName}</strong> has been safely received by House of Jesse Hostel.</p>
+        ${bookingRef ? `<p style="font-size:15px;color:#ff7a1a;margin-top:0;"><strong>Booking Reference:</strong> ${bookingRef}</p>` : ''}
         <div style="background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin:24px 0;">
           <p style="margin:0;font-size:14px;color:#b1b1ba;">Next Steps:</p>
           <p style="margin:8px 0 0;font-size:15px;color:#ececf0;line-height:1.6;">${messageHtml}</p>
@@ -119,6 +120,7 @@ export function adminBookingNotificationEmail(details: any) {
           <h2 style="font-size:16px;border-bottom:1px solid #f0f0f4;padding-bottom:10px;margin-bottom:16px;color:#111;">Resident Information</h2>
           <table style="width:100%;font-size:14px;line-height:2.0;">
             <tr><td style="color:#666;width:140px;">Name:</td><td><strong>${customerName}</strong></td></tr>
+            ${details.bookingRef ? `<tr><td style="color:#666;">Booking Ref:</td><td><strong style="color:#ff7a1a;font-family:monospace;">${details.bookingRef}</strong></td></tr>` : ''}
             <tr><td style="color:#666;">Email:</td><td>${customerEmail} ${isVerified ? '✅ (Verified)' : '❌ (Not Verified)'}</td></tr>
             <tr><td style="color:#666;">Phone:</td><td>${residentPhone}</td></tr>
             <tr><td style="color:#666;">Emergency:</td><td>${emergencyContact} (${emergencyRel})</td></tr>

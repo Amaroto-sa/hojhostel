@@ -140,7 +140,7 @@ export default function AdminBookingsPage() {
             <div key={booking.id} className="glass p-6 hover:border-[rgba(255,255,255,0.15)] transition">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <div>
-                  <h3 className="font-bold text-lg text-white">{booking.residentName}</h3>
+                  <h3 className="font-bold text-lg text-white">{booking.residentName} <span className="text-xs font-mono text-[#ff7a1a] ml-2 tracking-wider">#{booking.id.substring(booking.id.length - 8).toUpperCase()}</span></h3>
                   <p className="text-sm text-[#b1b1ba]">{booking.residentEmail || booking.user?.email || 'No email'} · {booking.residentPhone}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColors[booking.status]}`}>

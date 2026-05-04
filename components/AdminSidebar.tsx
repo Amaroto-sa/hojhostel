@@ -34,6 +34,7 @@ export default function AdminSidebar({ session, logoUrl }: AdminSidebarProps) {
         { href: "/admin/residents", label: "Residents", icon: Users },
         { href: "/admin/complaints", label: "Complaints", icon: AlertCircle },
         { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
+        { href: "/admin/emails", label: "Mailing & Emails", icon: Mail },
         { href: "/admin/testimonials", label: "Testimonials", icon: Star },
         { href: "/admin/gallery", label: "Gallery", icon: ImageIcon },
         { href: "/admin/settings", label: "Settings", icon: Settings },

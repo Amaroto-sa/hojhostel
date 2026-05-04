@@ -121,7 +121,8 @@ export async function POST(request: Request) {
     // Send booking confirmation email to client
     if (clientEmail) {
       const emailSetting = await prisma.setting.findUnique({ where: { key: "email_booking_received" } });
-      const customerEmailData = bookingSubmisionEmail(data.residentName, listing.house?.name || "HOJ Hostel", emailSetting?.value || undefined);
+      const bookingRef = booking.id.substring(booking.id.length - 8).toUpperCase();
+      const customerEmailData = bookingSubmisionEmail(data.residentName, listing.house?.name || "HOJ Hostel", emailSetting?.value || undefined, bookingRef);
       await sendEmail({ to: clientEmail, ...customerEmailData, type: "booking_confirmation" });
     }
 
@@ -129,6 +130,7 @@ export async function POST(request: Request) {
 
     // Prepare Admin Notification Details
     const notificationDetails = {
+      bookingRef: booking.id.substring(booking.id.length - 8).toUpperCase(),
       customerName: data.residentName,
       customerEmail: clientEmail || "Not provided",
       listingTitle: listing.title,

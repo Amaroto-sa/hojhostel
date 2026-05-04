@@ -1,28 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { CheckCircle, XCircle, Clock, Eye, Search, Download, X, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle, XCircle, Clock, Eye, Search, Download } from "lucide-react";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const toastTimeout = useRef<NodeJS.Timeout | null>(null);
-  const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { fetchBookings(); }, []);
-
-  // Auto-dismiss toast after 5 seconds
-  useEffect(() => {
-    if (toast) {
-      if (toastTimeout.current) clearTimeout(toastTimeout.current);
-      toastTimeout.current = setTimeout(() => setToast(null), 5000);
-    }
-    return () => { if (toastTimeout.current) clearTimeout(toastTimeout.current); };
-  }, [toast]);
 
   async function fetchBookings() {
     const res = await fetch("/api/bookings");
@@ -30,46 +17,14 @@ export default function AdminBookingsPage() {
     setLoading(false);
   }
 
-  async function updateStatus(id: string, status: string, residentName: string) {
+  async function updateStatus(id: string, status: string) {
     if (!window.confirm(`Are you sure you want to mark this booking as ${status}?`)) return;
-
-    setActionLoading(id);
-    try {
-      const res = await fetch(`/api/bookings/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to update booking");
-      }
-
-      await fetchBookings();
-
-      const statusLabels: Record<string, string> = {
-        APPROVED: "✅ Approved",
-        REJECTED: "❌ Rejected",
-        CANCELLED: "🚫 Cancelled",
-        COMPLETED: "🏁 Completed",
-      };
-      setToast({
-        message: `${statusLabels[status] || status} — ${residentName}'s booking has been updated successfully.`,
-        type: "success",
-      });
-
-      // Scroll to top so the admin sees the toast immediately
-      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (err: any) {
-      setToast({
-        message: `Failed to update booking: ${err.message || "Unknown error"}`,
-        type: "error",
-      });
-      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    } finally {
-      setActionLoading(null);
-    }
+    await fetch(`/api/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    fetchBookings();
   }
 
   const filtered = bookings.filter((b: any) => {
@@ -121,35 +76,6 @@ export default function AdminBookingsPage() {
 
   return (
     <div>
-      {/* Scroll anchor */}
-      <div ref={topRef} />
-
-      {/* Sticky Toast Notification */}
-      {toast && (
-        <div
-          className={`sticky top-0 z-50 mb-6 flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border text-sm font-medium animate-in slide-in-from-top-2 fade-in duration-300 ${
-            toast.type === "success"
-              ? "bg-green-500/15 border-green-500/30 text-green-300"
-              : "bg-red-500/15 border-red-500/30 text-red-300"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            {toast.type === "success" ? (
-              <CheckCircle size={20} className="shrink-0" />
-            ) : (
-              <XCircle size={20} className="shrink-0" />
-            )}
-            <span>{toast.message}</span>
-          </div>
-          <button
-            onClick={() => setToast(null)}
-            className="shrink-0 p-1 rounded-lg hover:bg-white/10 transition"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="font-display text-3xl text-white">Booking Management</h1>
@@ -255,29 +181,25 @@ export default function AdminBookingsPage() {
 
               {booking.status === "PENDING" && (
                 <div className="flex gap-3">
-                  <button onClick={() => updateStatus(booking.id, "APPROVED", booking.residentName)}
-                    disabled={actionLoading === booking.id}
-                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-green-500/20 text-green-400 text-sm font-bold border border-green-500/20 hover:bg-green-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                    {actionLoading === booking.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />} Approve
+                  <button onClick={() => updateStatus(booking.id, "APPROVED")}
+                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-green-500/20 text-green-400 text-sm font-bold border border-green-500/20 hover:bg-green-500/30 transition">
+                    <CheckCircle size={16} /> Approve
                   </button>
-                  <button onClick={() => updateStatus(booking.id, "REJECTED", booking.residentName)}
-                    disabled={actionLoading === booking.id}
-                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-red-500/20 text-red-400 text-sm font-bold border border-red-500/20 hover:bg-red-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                    {actionLoading === booking.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />} Reject
+                  <button onClick={() => updateStatus(booking.id, "REJECTED")}
+                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-red-500/20 text-red-400 text-sm font-bold border border-red-500/20 hover:bg-red-500/30 transition">
+                    <XCircle size={16} /> Reject
                   </button>
                 </div>
               )}
               {booking.status === "APPROVED" && (
                 <div className="flex gap-3">
-                  <button onClick={() => updateStatus(booking.id, "COMPLETED", booking.residentName)}
-                    disabled={actionLoading === booking.id}
-                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-bold border border-blue-500/20 hover:bg-blue-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                    {actionLoading === booking.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />} Mark Completed
+                  <button onClick={() => updateStatus(booking.id, "COMPLETED")}
+                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-bold border border-blue-500/20 hover:bg-blue-500/30 transition">
+                    <CheckCircle size={16} /> Mark Completed
                   </button>
-                  <button onClick={() => updateStatus(booking.id, "CANCELLED", booking.residentName)}
-                    disabled={actionLoading === booking.id}
-                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-gray-500/20 text-gray-400 text-sm font-bold border border-gray-500/20 hover:bg-gray-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                    {actionLoading === booking.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />} Cancel
+                  <button onClick={() => updateStatus(booking.id, "CANCELLED")}
+                    className="flex items-center gap-2 px-5 py-2 rounded-full bg-gray-500/20 text-gray-400 text-sm font-bold border border-gray-500/20 hover:bg-gray-500/30 transition">
+                    <XCircle size={16} /> Cancel
                   </button>
                 </div>
               )}
@@ -288,4 +210,3 @@ export default function AdminBookingsPage() {
     </div>
   );
 }
-

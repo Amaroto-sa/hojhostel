@@ -18,6 +18,9 @@ export default async function AdminLayout({
 
   const logoSetting = await prisma.setting.findUnique({ where: { key: "logo_url" } });
   const logoUrl = logoSetting?.value;
+  
+  const botSetting = await prisma.setting.findUnique({ where: { key: "system_bot_enabled" } });
+  const isBotEnabled = botSetting?.value === "true";
 
   return (
     <div className="min-h-screen bg-[#080809] lg:flex">
@@ -33,7 +36,7 @@ export default async function AdminLayout({
       </main>
 
       {/* Beta System Bot */}
-      <DraggableBot />
+      {isBotEnabled && <DraggableBot />}
     </div>
   );
 }

@@ -15,6 +15,7 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ session, logoUrl }: AdminSidebarProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [imageError, setImageError] = useState(false);
     const pathname = usePathname();
 
     // Close sidebar on navigation (mobile)
@@ -47,8 +48,8 @@ export default function AdminSidebar({ session, logoUrl }: AdminSidebarProps) {
             <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0c]/80 backdrop-blur-md border-b border-white/5 px-5 py-4 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg border border-white/10 flex items-center justify-center bg-gradient-to-br from-[#1c1c22] to-[#0e0e12] overflow-hidden">
-                        {logoUrl ? (
-                            <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                        {logoUrl && !imageError ? (
+                            <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" onError={() => setImageError(true)} />
                         ) : (
                             <span className="font-display font-bold text-[#ff7a1a] text-[10px]">HOJ</span>
                         )}
@@ -82,8 +83,8 @@ export default function AdminSidebar({ session, logoUrl }: AdminSidebarProps) {
                 <div className="p-8">
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className="w-[45px] h-[45px] rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-[#1c1c22] to-[#0e0e12] group-hover:border-[#ff7a1a]/50 transition-colors">
-                            {logoUrl ? (
-                                <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                            {logoUrl && !imageError ? (
+                                <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" onError={() => setImageError(true)} />
                             ) : (
                                 <span className="font-display font-bold text-[#ff7a1a] text-sm">HOJ</span>
                             )}

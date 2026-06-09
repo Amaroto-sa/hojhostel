@@ -174,11 +174,11 @@ export default function AdminResidentsPage() {
       </div>
 
       {/* Due Date Alerts */}
-      {residents.filter(r => r.status === "ACTIVE" && (isOverdue(r.dueDate) || isDueSoon(r.dueDate))).length > 0 && (
+      {residents.filter(r => (r.status === "ACTIVE" || r.status === "OVERDUE") && (isOverdue(r.dueDate) || isDueSoon(r.dueDate))).length > 0 && (
         <div className="bg-[rgba(255,122,26,0.08)] border border-[rgba(255,122,26,0.2)] rounded-2xl p-5 mb-8">
           <h3 className="flex items-center gap-2 font-bold text-[#ff7a1a] mb-3"><AlertTriangle size={18} /> Upcoming / Overdue Renewals</h3>
           <div className="space-y-2">
-            {residents.filter(r => r.status === "ACTIVE" && (isOverdue(r.dueDate) || isDueSoon(r.dueDate))).map((r: any) => (
+            {residents.filter(r => (r.status === "ACTIVE" || r.status === "OVERDUE") && (isOverdue(r.dueDate) || isDueSoon(r.dueDate))).map((r: any) => (
               <div key={r.id} className="flex items-center justify-between text-sm p-3 rounded-xl bg-[rgba(0,0,0,0.2)]">
                 <span className="text-white font-medium">{r.name} — {r.listing?.title}</span>
                 <div className="flex items-center gap-3">
@@ -246,7 +246,7 @@ export default function AdminResidentsPage() {
                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${statusColors[r.status]}`}>{r.status}</span>
                   </td>
                   <td className="py-4 px-5 text-right">
-                    {r.status === "ACTIVE" && (
+                    {(r.status === "ACTIVE" || r.status === "OVERDUE") && (
                       <div className="flex items-center justify-end gap-1.5">
                         {(isOverdue(r.dueDate) || isDueSoon(r.dueDate)) && (
                           <div className="flex gap-1.5 mr-2 pr-2 border-r border-white/10">

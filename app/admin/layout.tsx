@@ -29,7 +29,7 @@ export default async function AdminLayout({
       {/* Main content */}
       <main className="flex-1 w-full lg:pt-0 pt-16 transition-all duration-300">
         <div className="p-4 md:p-8 lg:p-10 w-full max-w-[1400px] mx-auto overflow-x-auto">
-          <div className="rounded-3xl bg-[rgba(255,255,255,0.015)] border border-white/5 p-4 md:p-8 min-h-[calc(100vh-140px)] shadow-2xl backdrop-blur-sm">
+          <div className="rounded-3xl bg-[rgba(255,255,255,0.015)] border border-white/5 p-4 md:p-8 min-h-[calc(100vh-140px)] shadow-2xl">
             {children}
           </div>
         </div>

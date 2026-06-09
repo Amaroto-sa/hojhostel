@@ -246,7 +246,7 @@ export default function AdminResidentsPage() {
                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${statusColors[r.status]}`}>{r.status}</span>
                   </td>
                   <td className="py-4 px-5 text-right">
-                    {r.status === "ACTIVE" && (
+                    {(r.status === "ACTIVE" || r.status === "OVERDUE") && (
                       <div className="flex items-center justify-end gap-1.5">
                         {(isOverdue(r.dueDate) || isDueSoon(r.dueDate)) && (
                           <div className="flex gap-1.5 mr-2 pr-2 border-r border-white/10">

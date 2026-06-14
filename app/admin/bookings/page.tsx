@@ -29,6 +29,16 @@ export default function AdminBookingsPage() {
     fetchBookings();
   }
 
+  async function updateIdStatus(id: string, idStatus: string) {
+    if (!window.confirm(`Mark ID document as ${idStatus}?`)) return;
+    await fetch(`/api/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idStatus }),
+    });
+    fetchBookings();
+  }
+
   function handleApproveSubmit(e: React.FormEvent) {
     e.preventDefault();
     updateStatus(approvalModal.bookingId, "APPROVED", {
@@ -182,6 +192,29 @@ export default function AdminBookingsPage() {
                     <span className="text-[#ff7a1a] font-bold">₦{booking.totalPrice?.toLocaleString()}</span>
                   </div>
                 )}
+                <div>
+                  <span className="text-gray-500 block mb-1">ID Document</span>
+                  {booking.idDocumentUrl ? (
+                    <div className="flex flex-col items-start gap-1">
+                      <a href={booking.idDocumentUrl} target="_blank" rel="noreferrer" className="text-[#ff7a1a] hover:underline flex items-center gap-1 text-xs mb-1">
+                        <Eye size={12} /> View Document
+                      </a>
+                      <div className="flex gap-2 items-center">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${booking.idStatus === 'APPROVED' ? 'bg-green-500/20 text-green-400' : booking.idStatus === 'REJECTED' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                          {booking.idStatus}
+                        </span>
+                        {booking.idStatus === "PENDING" && (
+                          <div className="flex gap-1">
+                            <button onClick={() => updateIdStatus(booking.id, "APPROVED")} className="text-[10px] text-white bg-green-600 hover:bg-green-500 px-2 py-0.5 rounded transition">Accept</button>
+                            <button onClick={() => updateIdStatus(booking.id, "REJECTED")} className="text-[10px] text-white bg-red-600 hover:bg-red-500 px-2 py-0.5 rounded transition">Reject</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-500 italic text-xs">Not uploaded</span>
+                  )}
+                </div>
               </div>
 
               {booking.notes && (

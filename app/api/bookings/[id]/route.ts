@@ -16,7 +16,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status, checkInDate: newCheckInDate, adminNotes } = body;
+    const { status, checkInDate: newCheckInDate, adminNotes, idStatus } = body;
 
     const booking = await prisma.booking.findUnique({
       where: { id: params.id },
@@ -30,8 +30,10 @@ export async function PATCH(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // Update booking status
-    const updateData: any = { status };
+    // Update booking data
+    const updateData: any = {};
+    if (status) updateData.status = status;
+    if (idStatus) updateData.idStatus = idStatus;
     if (newCheckInDate) updateData.checkInDate = new Date(newCheckInDate);
     if (adminNotes) {
       updateData.notes = booking.notes ? `${booking.notes}\nAdmin Note: ${adminNotes}` : `Admin Note: ${adminNotes}`;

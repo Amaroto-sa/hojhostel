@@ -111,6 +111,7 @@ export async function POST(request: Request) {
         notes: data.notes || null,
         totalPrice: Math.round(totalPrice),
         status: "PENDING",
+        idDocumentUrl: data.idDocumentUrl,
       },
     });
 

@@ -24,6 +24,7 @@ export const bookingSchema = z.object({
   emergencyContact: z.string().min(7, "Please enter an emergency contact number"),
   emergencyRel: z.string().min(2, "Please specify relationship"),
   notes: z.string().optional(),
+  idDocumentUrl: z.string().min(1, "Please upload a valid identification document"),
 });
 
 export const listingSchema = z.object({

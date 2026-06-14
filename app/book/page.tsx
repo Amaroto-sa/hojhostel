@@ -24,7 +24,10 @@ export default function BookPage() {
     emergencyContact: "",
     emergencyRel: "",
     notes: "",
+    idDocumentUrl: "",
   });
+
+  const [idFile, setIdFile] = useState<File | null>(null);
 
   const [accommodations, setAccommodations] = useState<{ id: string; label: string; price: number }[]>([]);
 
@@ -82,12 +85,39 @@ export default function BookPage() {
     setLoading(true);
     setError("");
 
+    if (!idFile) {
+      setError("Please upload a valid identification document (front only).");
+      setLoading(false);
+      return;
+    }
+
     try {
+      // 1. Upload ID document first
+      const formData = new FormData();
+      formData.append("file", idFile);
+
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        const uploadData = await uploadRes.json();
+        setError(uploadData.error || "Failed to upload ID document");
+        setLoading(false);
+        return;
+      }
+
+      const uploadData = await uploadRes.json();
+      const idDocumentUrl = uploadData.url;
+
+      // 2. Submit booking request
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          idDocumentUrl,
           durationCount: Number(form.durationCount),
         }),
       });
@@ -241,6 +271,29 @@ export default function BookPage() {
               <label className="block text-sm font-medium mb-2 text-gray-300">Additional Notes</label>
               <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} placeholder="Any special requests or questions..."
                 className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors resize-none" />
+            </div>
+
+            <hr className="border-[rgba(255,255,255,0.08)]" />
+            <h2 className="font-display text-xl mb-1">Identification</h2>
+            <div className="bg-[rgba(255,122,26,0.05)] border border-[rgba(255,122,26,0.15)] rounded-xl p-5">
+              <label className="block text-sm font-medium mb-2 text-gray-300">
+                Government Issued ID (Front Only) *
+              </label>
+              <p className="text-xs text-[#b1b1ba] mb-4">
+                Please upload a clear picture of your National ID, Driver's License, or International Passport.
+              </p>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setIdFile(e.target.files?.[0] || null)}
+                required
+                className="block w-full text-sm text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-[#ff7a1a] file:text-[#111]
+                  hover:file:bg-[#ff9f5a] transition-colors"
+              />
             </div>
 
             {/* Live Price Display */}

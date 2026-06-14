@@ -5,9 +5,13 @@ import { authOptions } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
+    const { prisma } = await import("@/lib/prisma");
     const session = await getServerSession(authOptions);
-    if (!session || (session.user?.role !== "ADMIN" && session.user?.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authSetting = await prisma.setting.findUnique({ where: { key: "enable_guest_booking" } });
+    const isGuestAllowed = authSetting?.value === "true";
+
+    if (!session && !isGuestAllowed) {
+      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
     }
 
     const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;

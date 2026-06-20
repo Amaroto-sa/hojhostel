@@ -87,6 +87,14 @@ export default async function ResidentDetailPage({ params }: { params: { id: str
                                 <span className="text-[#b1b1ba]">Current Due Date</span>
                                 <span className="text-[#ff7a1a] font-bold">{new Date(resident.dueDate).toDateString()}</span>
                             </div>
+                            {resident.booking?.idDocumentUrl && (
+                                <div className="flex justify-between items-center mt-2">
+                                    <span className="text-[#b1b1ba]">ID Document</span>
+                                    <a href={resident.booking.idDocumentUrl} target="_blank" rel="noreferrer" className="text-[#ff7a1a] hover:underline text-sm font-medium">
+                                        View Document
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

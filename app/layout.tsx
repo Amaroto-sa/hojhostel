@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import TawkToWidget from "@/components/TawkToWidget";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -53,6 +54,7 @@ export default function RootLayout({
           <Navbar />
           <main className="relative z-10 min-h-screen">{children}</main>
           <Footer />
+          <TawkToWidget />
         </Providers>
       </body>
     </html>

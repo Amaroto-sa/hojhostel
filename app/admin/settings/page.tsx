@@ -24,6 +24,8 @@ const defaultSettings = [
   { key: "bot_greeting_name", label: "System Bot: Recipient Name (e.g. Miss Azubuike)", type: "text" },
   { key: "system_bot_enabled", label: "Enable System Bot (Floating Assistant)", type: "checkbox" },
   { key: "security_alerts_enabled", label: "Security: Admin Login Alerts (Email & Telegram)", type: "checkbox" },
+  { key: "tawkto_property_id", label: "Live Chat: Tawk.to Property ID", type: "text" },
+  { key: "tawkto_widget_id", label: "Live Chat: Tawk.to Widget ID (usually '1default' or similar)", type: "text" },
 ];
 
 export default function AdminSettingsPage() {

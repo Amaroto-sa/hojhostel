@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ContactForm from "@/components/ContactForm";
+import FAQSection from "@/components/FAQSection";
 
 // Ensure the page fetches fresh data from the database
 export const dynamic = "force-dynamic";
@@ -270,6 +271,9 @@ export default async function Home() {
           </div>
         )}
       </section>
+
+      {/* ── FAQ ── */}
+      <FAQSection />
 
       {/* ── TESTIMONIALS ── */}
       <section className="py-10" id="testimonials">

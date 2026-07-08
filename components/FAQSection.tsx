@@ -85,13 +85,13 @@ export default function FAQSection() {
                 onClick={() => toggleFAQ(index)}
               >
                 <span className="font-display text-lg text-white pr-4">{faq.question}</span>
-                <div className={\`w-8 h-8 rounded-full flex items-center justify-center bg-white/5 border border-white/10 shrink-0 transition-transform duration-300 \${isOpen ? 'rotate-180 bg-[#ff7a1a] text-black border-[#ff7a1a]' : 'text-gray-400'}\`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-white/5 border border-white/10 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180 bg-[#ff7a1a] text-black border-[#ff7a1a]' : 'text-gray-400'}`}>
                   <ChevronDown size={18} />
                 </div>
               </button>
               
               <div 
-                className={\`transition-all duration-300 ease-in-out \${isOpen ? 'max-h-[800px] opacity-100 pb-6 px-6' : 'max-h-0 opacity-0 px-6'}\`}
+                className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[800px] opacity-100 pb-6 px-6' : 'max-h-0 opacity-0 px-6'}`}
               >
                 <div className="text-[#b1b1ba] text-sm md:text-base leading-relaxed border-t border-white/10 pt-4 mt-2">
                   {faq.answer}

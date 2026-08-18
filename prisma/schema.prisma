@@ -241,6 +241,7 @@ model Resident {
   renewals          Renewal[]
   receipts          Receipt[]
   clearance         Clearance?
+  broadcastRecipients BroadcastRecipient[]
 
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt

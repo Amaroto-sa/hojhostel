@@ -12,6 +12,7 @@ export default function BroadcastClient({ initialHistory }: { initialHistory: an
     const [templateName, setTemplateName] = useState("");
     const [message, setMessage] = useState("");
     const [audience, setAudience] = useState("ACTIVE_RESIDENTS");
+    const [customNumbers, setCustomNumbers] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [feedback, setFeedback] = useState<{ type: "success" | "error", msg: string } | null>(null);
 
@@ -28,7 +29,8 @@ export default function BroadcastClient({ initialHistory }: { initialHistory: an
                     type: messageType,
                     templateName: messageType === "TEMPLATE" ? templateName : undefined,
                     message: messageType === "CUSTOM" ? message : undefined,
-                    targetAudience: audience
+                    targetAudience: audience,
+                    customNumbers: audience === "CUSTOM_NUMBERS" ? customNumbers : undefined
                 })
             });
 
@@ -90,9 +92,27 @@ export default function BroadcastClient({ initialHistory }: { initialHistory: an
                                         onChange={(e) => setAudience(e.target.value)}
                                         className="w-full bg-[#0a0a0c] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors appearance-none"
                                     >
-                                        <option value="ACTIVE_RESIDENTS">All Active Residents</option>
+                                        <option value="ACTIVE_RESIDENTS">Active Residents (Default + Auto-Fallback)</option>
+                                        <option value="ALL_RESIDENTS">All Hostel Residents (Any Status)</option>
+                                        <option value="BOOKINGS">All Guest Bookings</option>
+                                        <option value="ALL">Everyone (Residents + Bookings + Customer Profiles)</option>
+                                        <option value="CUSTOM_NUMBERS">Custom Phone Numbers (Manual Entry)</option>
                                     </select>
                                 </div>
+
+                                {audience === "CUSTOM_NUMBERS" && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#f5f5f7] mb-2">Enter Phone Numbers</label>
+                                        <textarea 
+                                            required
+                                            value={customNumbers}
+                                            onChange={(e) => setCustomNumbers(e.target.value)}
+                                            placeholder="Enter phone numbers separated by commas or newlines (e.g. 08012345678, 09087654321)"
+                                            rows={3}
+                                            className="w-full bg-[#0a0a0c] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#ff7a1a] transition-colors resize-none"
+                                        />
+                                    </div>
+                                )}
 
                                 <div>
                                     <label className="block text-sm font-medium text-[#f5f5f7] mb-2">Message Type</label>
@@ -141,7 +161,7 @@ export default function BroadcastClient({ initialHistory }: { initialHistory: an
                                 )}
 
                                 <button 
-                                    disabled={isSubmitting || (messageType === "TEMPLATE" ? !templateName : !message)}
+                                    disabled={isSubmitting || (messageType === "TEMPLATE" ? !templateName : !message) || (audience === "CUSTOM_NUMBERS" && !customNumbers)}
                                     type="submit"
                                     className="w-full bg-[#ff7a1a] hover:bg-[#ff9f5a] text-black font-bold py-3.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >

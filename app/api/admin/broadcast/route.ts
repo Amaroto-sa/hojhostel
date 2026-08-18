@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { message, templateName, type, targetAudience } = body;
+        const { message, templateName, type, targetAudience, customNumbers } = body;
 
         if (!message && type === "CUSTOM") {
             return NextResponse.json({ error: "Message is required for custom broadcasts." }, { status: 400 });
@@ -26,17 +26,65 @@ export async function POST(req: NextRequest) {
         // Fetch target audience phone numbers
         let rawNumbers: { phone: string; residentId?: string }[] = [];
 
-        if (targetAudience === "ACTIVE_RESIDENTS" || targetAudience === "ALL") {
+        if (targetAudience === "CUSTOM_NUMBERS" && customNumbers) {
+            // Parse comma/newline separated numbers
+            const parsed = String(customNumbers).split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+            rawNumbers = parsed.map(phone => ({ phone }));
+        } else if (targetAudience === "BOOKINGS") {
+            const bookings = await prisma.booking.findMany({
+                select: { id: true, residentPhone: true }
+            });
+            rawNumbers = bookings.map(b => ({ phone: b.residentPhone }));
+        } else if (targetAudience === "ALL_RESIDENTS") {
+            const residents = await prisma.resident.findMany({
+                select: { id: true, phone: true }
+            });
+            rawNumbers = residents.map(r => ({ phone: r.phone, residentId: r.id }));
+        } else if (targetAudience === "ALL") {
+            // Combine residents, bookings, and customer profiles
+            const [residents, bookings, profiles] = await Promise.all([
+                prisma.resident.findMany({ select: { id: true, phone: true } }),
+                prisma.booking.findMany({ select: { id: true, residentPhone: true } }),
+                prisma.customerProfile.findMany({ select: { id: true, phone: true } })
+            ]);
+
+            residents.forEach(r => r.phone && rawNumbers.push({ phone: r.phone, residentId: r.id }));
+            bookings.forEach(b => b.residentPhone && rawNumbers.push({ phone: b.residentPhone }));
+            profiles.forEach(p => p.phone && rawNumbers.push({ phone: p.phone }));
+        } else {
+            // Default / ACTIVE_RESIDENTS: Try active residents first
             const activeResidents = await prisma.resident.findMany({
                 where: { status: "ACTIVE" },
                 select: { id: true, phone: true }
             });
             
             rawNumbers = activeResidents.map(r => ({ phone: r.phone, residentId: r.id }));
+
+            // Fallback: If no active residents, search all residents, then bookings
+            if (rawNumbers.length === 0) {
+                const allResidents = await prisma.resident.findMany({
+                    select: { id: true, phone: true }
+                });
+                rawNumbers = allResidents.map(r => ({ phone: r.phone, residentId: r.id }));
+            }
+
+            if (rawNumbers.length === 0) {
+                const allBookings = await prisma.booking.findMany({
+                    select: { id: true, residentPhone: true }
+                });
+                rawNumbers = allBookings.map(b => ({ phone: b.residentPhone }));
+            }
+
+            if (rawNumbers.length === 0) {
+                const profiles = await prisma.customerProfile.findMany({
+                    select: { id: true, phone: true }
+                });
+                profiles.forEach(p => p.phone && rawNumbers.push({ phone: p.phone }));
+            }
         }
 
         if (rawNumbers.length === 0) {
-            return NextResponse.json({ error: "No active residents found to broadcast to." }, { status: 404 });
+            return NextResponse.json({ error: "No phone numbers found to broadcast to. Please select another audience or enter custom numbers." }, { status: 404 });
         }
 
         // Deduplicate numbers and format them

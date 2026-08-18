@@ -27,6 +27,7 @@ model User {
   receipts        Receipt[]
   expenses        Expense[]
   notices         Notice[]
+  broadcasts      Broadcast[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -366,4 +367,37 @@ enum ReceiptType {
   CAUTION_FEE
   FINE
   OTHER
+}
+
+model Broadcast {
+  id            String               @id @default(cuid())
+  message       String               @db.Text
+  templateName  String?              
+  type          String               @default("CUSTOM") 
+  status        String               @default("PENDING") 
+  
+  senderId      String?
+  sender        User?                @relation(fields: [senderId], references: [id])
+  
+  recipients    BroadcastRecipient[]
+  
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+model BroadcastRecipient {
+  id            String     @id @default(cuid())
+  broadcastId   String
+  broadcast     Broadcast  @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  
+  residentId    String?
+  resident      Resident?  @relation(fields: [residentId], references: [id], onDelete: SetNull)
+  
+  phone         String
+  status        String     @default("PENDING") 
+  error         String?    @db.Text
+  messageId     String?    
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, Users, Home, Calendar, Settings,
-    LogOut, Star, ImageIcon, UserCircle, Menu, X, AlertCircle, Mail, ShieldCheck, Wallet, CheckSquare, Bell
+    LogOut, Star, ImageIcon, UserCircle, Menu, X, AlertCircle, Mail, ShieldCheck, Wallet, CheckSquare, Bell, MessageSquare
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -26,7 +26,8 @@ export default function AdminSidebar({ session, logoUrl }: AdminSidebarProps) {
     const navItems = [
         { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
         { href: "/admin/finance", label: "Finance & Expenses", icon: Wallet },
-        { href: "/admin/notices", label: "Broadcast Notices", icon: Bell },
+        { href: "/admin/broadcast", label: "WhatsApp Broadcast", icon: MessageSquare },
+        { href: "/admin/notices", label: "System Notices", icon: Bell },
         { href: "/admin/clearance", label: "Move-Out Checklists", icon: CheckSquare },
         { href: "/admin/users", label: "User Accounts", icon: UserCircle },
         { href: "/admin/listings", label: "Listings & Houses", icon: Home },
